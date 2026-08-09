@@ -8,20 +8,17 @@
     * { box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f6f9; margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden; }
     
-    /* شاشة الدخول */
     #login-box { background: #fff; border-radius: 10px; padding: 30px; max-width: 400px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
     input, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; }
     button { background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
     button:hover { opacity: 0.9; }
 
-    /* القائمة الجانبية للتنقل */
     .sidebar { width: 250px; background: #1e293b; color: white; display: flex; flex-direction: column; padding: 20px 10px; }
     .sidebar h2 { font-size: 18px; text-align: center; margin-bottom: 20px; color: #38bdf8; }
     .nav-btn { background: transparent; color: #cbd5e1; text-align: right; border: none; padding: 12px; margin: 4px 0; border-radius: 6px; font-size: 16px; cursor: pointer; width: 100%; }
     .nav-btn:hover, .nav-btn.active { background: #334155; color: #fff; font-weight: bold; }
     .logout-btn { background: #ef4444; margin-top: auto; color: white; }
 
-    /* محتوى الصفحات */
     .main-content { flex: 1; padding: 25px; overflow-y: auto; }
     .page { display: none; }
     .page.active { display: block; }
@@ -48,7 +45,7 @@
     <p id="msg" style="color:red; font-weight:bold; margin-top:15px;"></p>
   </div>
 
-  <!-- التطبيق الرئيسي بعد الدخول -->
+  <!-- التطبيق الرئيسي -->
   <div id="app" style="display:none; width: 100%; height: 100%; display: flex;">
     
     <!-- القائمة الجانبية -->
@@ -94,26 +91,22 @@
         <h2>تقرير المبيعات</h2>
         <div class="stats-grid">
           <div class="stat-card">
-            <h4>مبيعات اليوم</h4>
-            <p id="daily-sales-total">0 ج.م</p>
-          </div>
-          <div class="stat-card">
-            <h4>مبيعات الشهر الحالي</h4>
-            <p id="monthly-sales-total">0 ج.م</p>
+            <h4>إجمالي مبيعات المسجلة</h4>
+            <p id="total-sales-sum">0 ج.م</p>
           </div>
         </div>
 
         <div class="card">
           <h3>تسجيل عملية بيع جديدة</h3>
           <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px;">
-            <select id="sale-product-select"></select>
-            <input type="number" id="sale-qty" value="1" placeholder="الكمية">
+            <select id="sale-product-select" onchange="autoCalculateTotal()"></select>
+            <input type="number" id="sale-qty" value="1" placeholder="الكمية" oninput="autoCalculateTotal()">
             <input type="number" id="sale-price" placeholder="السعر الإجمالي">
             <button onclick="recordSale()" style="margin: 8px 0;">حفظ البيعة</button>
           </div>
         </div>
 
-        <h3>سجل المبيعات اليومية</h3>
+        <h3>سجل المبيعات</h3>
         <table>
           <thead>
             <tr>
@@ -139,9 +132,9 @@
         <table>
           <thead>
             <tr>
-              <th>رقم الفاتورة / العملية</th>
-              <th>التاريخ</th>
+              <th>تاريخ العملية</th>
               <th>تفاصيل الصنف</th>
+              <th>الكمية</th>
               <th>المبلغ الإجمالي</th>
             </tr>
           </thead>
@@ -156,6 +149,8 @@
     const SUPABASE_URL = "https://gqcrmfwbqbdlimhwiovm.supabase.co";
     const SUPABASE_KEY = "sb_publishable_e20NbhSf0QwDoQz54EdGcw_n0UuY3Y6";
     var client;
+    var rawProducts = [];
+    var salesHistory = [];
 
     window.onload = function() {
       if (typeof supabase !== 'undefined') {
@@ -170,7 +165,7 @@
       document.getElementById(pageId).classList.add('active');
       if(btn) btn.classList.add('active');
 
-      if(pageId === 'sales-page') loadSalesData();
+      if(pageId === 'sales-page') renderSales();
       if(pageId === 'invoices-page') loadMonthlyInvoices();
     }
 
@@ -214,27 +209,94 @@
     async function loadProducts() {
       const { data } = await client.from('products').select('*');
       if (data) {
+        rawProducts = data;
         const tbody = document.getElementById('inventory-list');
         const select = document.getElementById('sale-product-select');
         tbody.innerHTML = '';
         select.innerHTML = '<option value="">اختر الصنف للبيع...</option>';
         data.forEach(item => {
           tbody.innerHTML += `<tr><td>${item["اسم القطعه"]}</td><td>${item["سعر القطعه"]} ج.م</td><td>${item["الكميه"]}</td></tr>`;
-          select.innerHTML += `<option value="${item["اسم القطعه"]}" data-price="${item["سعر القطعه"]}">${item["اسم القطعه"]}</option>`;
+          select.innerHTML += `<option value="${item["اسم القطعه"]}" data-price="${item["سعر القطعه"]}" data-qty="${item["الكميه"]}">${item["اسم القطعه"]}</option>`;
         });
       }
     }
 
+    function autoCalculateTotal() {
+      const select = document.getElementById('sale-product-select');
+      const selectedOption = select.options[select.selectedIndex];
+      const price = selectedOption.getAttribute('data-price') || 0;
+      const qty = document.getElementById('sale-qty').value || 1;
+      document.getElementById('sale-price').value = price * qty;
+    }
+
     async function recordSale() {
-      alert("تم إعداد الواجهة بنجاح، يمكنك ربط جدول المبيعات الخاص بك في الخطوة القادمة!");
+      const select = document.getElementById('sale-product-select');
+      const itemName = select.value;
+      const saleQty = parseInt(document.getElementById('sale-qty').value);
+      const totalPrice = document.getElementById('sale-price').value;
+
+      if (!itemName || !saleQty || !totalPrice) {
+        return alert("يرجى اختيار الصنف وتحديد الكمية والسعر");
+      }
+
+      const selectedOption = select.options[select.selectedIndex];
+      const currentQty = parseInt(selectedOption.getAttribute('data-qty'));
+
+      if (saleQty > currentQty) {
+        return alert("الكمية المطلوبة غير متوفرة بالكامل في المخزون الحالي!");
+      }
+
+      const updatedQty = currentQty - saleQty;
+
+      const { error: updateError } = await client
+        .from('products')
+        .update({ "الكميه": updatedQty })
+        .eq('اسم القطعه', itemName);
+
+      if (updateError) {
+        alert("حدث خطأ أثناء تحديث المخزون: " + updateError.message);
+        return;
+      }
+
+      const saleRecord = {
+        date: new Date().toLocaleString('ar-EG'),
+        isoDate: new Date().toISOString(),
+        item: itemName,
+        qty: saleQty,
+        total: parseFloat(totalPrice)
+      };
+
+      salesHistory.push(saleRecord);
+      alert("تم تسجيل البيعة بنجاح وخصم الكمية من المخزون!");
+      
+      document.getElementById('sale-qty').value = 1;
+      document.getElementById('sale-price').value = '';
+      
+      loadProducts();
+      renderSales();
     }
 
-    async function loadSalesData() {
-      // شاشة لعرض إحصائيات يومية وشهرية
+    function renderSales() {
+      const tbody = document.getElementById('sales-list');
+      tbody.innerHTML = '';
+      let sum = 0;
+      salesHistory.forEach(s => {
+        sum += s.total;
+        tbody.innerHTML += `<tr><td>${s.date}</td><td>${s.item}</td><td>${s.qty}</td><td>${s.total} ج.م</td></tr>`;
+      });
+      document.getElementById('total-sales-sum').innerText = sum + " ج.م";
     }
 
-    async function loadMonthlyInvoices() {
-      // شاشة تصفية وتصميم فواتير الشهر
+    function loadMonthlyInvoices() {
+      const selectedMonth = document.getElementById('invoice-month-picker').value;
+      const tbody = document.getElementById('invoices-list');
+      tbody.innerHTML = '';
+      
+      const filtered = salesHistory.filter(s => s.isoDate.startsWith(selectedMonth));
+      
+      filtered.forEach(s => {
+        tbody.innerHTML += `<tr><td>${s.date}</td><td>${s.item}</td><td>${s.qty}</td><td>${s.total} ج.م</td></tr>`;
+      });
     }
   </script>
 </body>
