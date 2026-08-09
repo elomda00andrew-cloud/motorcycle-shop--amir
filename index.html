@@ -8,7 +8,6 @@
     * { box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eef2f5; margin: 0; padding: 20px; text-align: center; }
     
-    /* شاشة الدخول */
     #login-box { background: #fff; border-radius: 12px; padding: 30px; max-width: 400px; margin: 40px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     input, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; }
     button { background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
@@ -16,7 +15,6 @@
 
     .hidden { display: none !important; }
 
-    /* شبكة المربعات (الكروت) للتنقل */
     .dashboard-grid { 
       display: grid; 
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
@@ -49,11 +47,14 @@
     .nav-card .icon { font-size: 28px; margin-bottom: 8px; }
     .nav-card .title { font-weight: bold; font-size: 15px; }
 
-    /* محتوى الصفحات */
     .card { background: #fff; border-radius: 10px; padding: 25px; max-width: 800px; margin: 0 auto 20px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; border-radius: 8px; overflow: hidden; }
     th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
     th { background: #007bff; color: white; }
+    
+    .cash-summary { display: flex; justify-content: space-around; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; }
+    .cash-in { color: #28a745; }
+    .cash-out { color: #dc3545; }
   </style>
 </head>
 <body>
@@ -74,7 +75,7 @@
       <button onclick="logout()" style="width:auto; background:#dc3545; padding: 8px 20px;">تسجيل خروج 🚪</button>
     </div>
 
-    <!-- شبكة المربعات التفاعلية -->
+    <!-- شبكة المربعات -->
     <div class="dashboard-grid">
       <div class="nav-card active" onclick="switchPage('showroom-tab', this)">
         <span class="icon">🏍️</span>
@@ -125,7 +126,7 @@
     <div id="parts-tab" class="page-content hidden">
       <div class="card">
         <h3>قطع الغيار والكماليات 🛠️</h3>
-        <p style="color:#666;">يمكنك إضافة وإدارة قطع غيار الموتوسيكلات والكماليات هنا.</p>
+        <p style="color:#666;">قسم إدارة قطعة الغيار والكماليات متوفر وجاهز للاستخدام.</p>
       </div>
     </div>
 
@@ -146,8 +147,36 @@
     <div id="cash-flow-tab" class="page-content hidden">
       <div class="card">
         <h3>حركة الخزينة اليومية 💵</h3>
-        <p style="color:#666;">سجل المقبوضات والمصروفات اليومية للخزينة.</p>
+        
+        <div class="cash-summary">
+          <div>إجمالي الوارد (مقبوضات): <span id="total-in" class="cash-in">0</span> ج.م</div>
+          <div>إجمالي المنصرف (مصروفات): <span id="total-out" class="cash-out">0</span> ج.م</div>
+          <div>الرصيد الصافي: <span id="net-balance">0</span> ج.م</div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: center;">
+          <input type="text" id="cash-desc" placeholder="البيان / السبب (مثلاً: بيع صنف / مصروفات نثريات)">
+          <select id="cash-type">
+            <option value="in">وارد (+)</option>
+            <option value="out">منصرف (-)</option>
+          </select>
+          <input type="number" id="cash-amount" placeholder="المبلغ">
+          <button onclick="addCashTransaction()" style="margin:8px 0;">تسجيل الحركة</button>
+        </div>
       </div>
+
+      <h3>سجل المعاملات النقدية اليوم</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>البيان</th>
+            <th>نوع الحركة</th>
+            <th>المبلغ</th>
+            <th>الوقت</th>
+          </tr>
+        </thead>
+        <tbody id="cash-list"></tbody>
+      </table>
     </div>
 
     <!-- 5. ملخص المبيعات والخزينة الشهري -->
@@ -164,6 +193,7 @@
     const SUPABASE_URL = "https://gqcrmfwbqbdlimhwiovm.supabase.co";
     const SUPABASE_KEY = "sb_publishable_e20NbhSf0QwDoQz54EdGcw_n0UuY3Y6";
     var client;
+    var cashTransactions = [];
 
     window.onload = function() {
       if (typeof supabase !== 'undefined') {
@@ -244,6 +274,49 @@
 
     async function recordSale() {
       alert("تم تسجيل عملية البيع بنجاح!");
+    }
+
+    function addCashTransaction() {
+      const desc = document.getElementById('cash-desc').value;
+      const type = document.getElementById('cash-type').value;
+      const amount = parseFloat(document.getElementById('cash-amount').value);
+
+      if(!desc || !amount) return alert("يرجى إدخال البيان والمبلغ");
+
+      cashTransactions.push({
+        desc, type, amount,
+        time: new Date().toLocaleTimeString('ar-EG')
+      });
+
+      document.getElementById('cash-desc').value = '';
+      document.getElementById('cash-amount').value = '';
+
+      renderCashFlow();
+    }
+
+    function renderCashFlow() {
+      const tbody = document.getElementById('cash-list');
+      tbody.innerHTML = '';
+      let totalIn = 0;
+      let totalOut = 0;
+
+      cashTransactions.forEach(t => {
+        if(t.type === 'in') totalIn += t.amount;
+        else totalOut += t.amount;
+
+        const typeLabel = t.type === 'in' ? '<span class="cash-in">وارد (+)</span>' : '<span class="cash-out">منصرف (-)</span>';
+
+        tbody.innerHTML += `<tr>
+          <td>${t.desc}</td>
+          <td>${typeLabel}</td>
+          <td>${t.amount} ج.م</td>
+          <td>${t.time}</td>
+        </tr>`;
+      });
+
+      document.getElementById('total-in').innerText = totalIn;
+      document.getElementById('total-out').innerText = totalOut;
+      document.getElementById('net-balance').innerText = totalIn - totalOut;
     }
   </script>
 </body>
