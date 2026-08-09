@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>نظام حسابات محل الموتوسيكلات وقطع الغيار</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>نظام حسابات محل الموتوسيكلات</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eef2f5; margin: 0; padding: 20px; text-align: center; }
     .card { background: #fff; border-radius: 10px; padding: 25px; max-width: 450px; margin: 30px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -23,11 +23,11 @@
     <h2>تسجيل الدخول للنظام</h2>
     <input type="email" id="email" placeholder="البريد الإلكتروني">
     <input type="password" id="password" placeholder="كلمة المرور">
-    <button onclick="login()">دخول</button>
-    <p id="msg" style="color:red;"></p>
+    <button id="login-btn" onclick="login()">دخول</button>
+    <p id="msg" style="color:red; font-weight:bold;"></p>
   </div>
 
-  <!-- لوحة التحكم الحسابية -->
+  <!-- لوحة التحكم -->
   <div id="app" class="hidden">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <h2>نظام إدارة المخزون والحسابات</h2>
@@ -60,24 +60,45 @@
     const SUPABASE_URL = "https://gqcrmfwbqbdlimhwiovm.supabase.co";
     const SUPABASE_KEY = "sb_publishable_e20NbhSf0QwDoQz54EdGcw_n0UuY3Y6";
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let supabaseClient;
+
+    window.onload = function() {
+      try {
+        const { createClient } = window.supabase;
+        supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+      } catch (e) {
+        document.getElementById('msg').innerText = "خطأ في تحميل مكتبة الاتصال، يرجى تحديث الصفحة.";
+      }
+    };
 
     async function login() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const msg = document.getElementById('msg');
+      const btn = document.getElementById('login-btn');
+      msg.innerText = "جاري التحقق...";
+      btn.disabled = true;
 
-      if (error) {
-        document.getElementById('msg').innerText = "بيانات الدخول غير صحيحة!";
-      } else {
-        document.getElementById('login-box').classList.add('hidden');
-        document.getElementById('app').classList.remove('hidden');
-        loadProducts();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+        if (error) {
+          msg.innerText = "خطأ: " + error.message;
+          btn.disabled = false;
+        } else {
+          document.getElementById('login-box').classList.add('hidden');
+          document.getElementById('app').classList.remove('hidden');
+          loadProducts();
+        }
+      } catch (err) {
+        msg.innerText = "حدث خطأ غير متوقع: " + err.message;
+        btn.disabled = false;
       }
     }
 
     async function logout() {
-      await supabase.auth.signOut();
+      await supabaseClient.auth.signOut();
       location.reload();
     }
 
@@ -88,7 +109,7 @@
 
       if(!name || !price || !quantity) return alert("يرجى ملء جميع الحقول");
 
-      const { error } = await supabase.from('products').insert([
+      const { error } = await supabaseClient.from('products').insert([
         { "اسم القطعه": name, "سعر القطعه": price, "الكميه": quantity }
       ]);
 
@@ -104,7 +125,7 @@
     }
 
     async function loadProducts() {
-      const { data, error } = await supabase.from('products').select('*');
+      const { data, error } = await supabaseClient.from('products').select('*');
       if (!error && data) {
         const tbody = document.getElementById('inventory-list');
         tbody.innerHTML = '';
