@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>نظام حسابات محل الموتوسيكلات وقطع الغيار</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eef2f5; margin: 0; padding: 20px; text-align: center; }
+    .card { background: #fff; border-radius: 10px; padding: 25px; max-width: 450px; margin: 30px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    input, button { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; }
+    button { background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
+    button:hover { background: #218838; }
+    .hidden { display: none; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background: #007bff; color: white; }
+  </style>
+</head>
+<body>
+
+  <!-- شاشة تسجيل الدخول -->
+  <div id="login-box" class="card">
+    <h2>تسجيل الدخول للنظام</h2>
+    <input type="email" id="email" placeholder="البريد الإلكتروني">
+    <input type="password" id="password" placeholder="كلمة المرور">
+    <button onclick="login()">دخول</button>
+    <p id="msg" style="color:red;"></p>
+  </div>
+
+  <!-- لوحة التحكم الحسابية -->
+  <div id="app" class="hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2>نظام إدارة المخزون والحسابات</h2>
+      <button onclick="logout()" style="width:auto; background:#dc3545;">تسجيل خروج</button>
+    </div>
+    <hr>
+    
+    <div class="card" style="max-width:100%;">
+      <h3>إضافة صنف جديد (موتوسيكل / قطعة غيار)</h3>
+      <input type="text" id="p-name" placeholder="اسم القطعه">
+      <input type="number" id="p-price" placeholder="سعر القطعه">
+      <input type="number" id="p-qty" placeholder="الكميه">
+      <button onclick="addProduct()">حفظ الصنف</button>
+    </div>
+
+    <h3>المخزون الحالي</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>اسم القطعة</th>
+          <th>السعر</th>
+          <th>الكمية المتاحة</th>
+        </tr>
+      </thead>
+      <tbody id="inventory-list"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://gqcrmfwbqbdlimhwiovm.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_e20NbhSf0QwDoQz54EdGcw_n0UuY3Y6";
+
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        document.getElementById('msg').innerText = "بيانات الدخول غير صحيحة!";
+      } else {
+        document.getElementById('login-box').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        loadProducts();
+      }
+    }
+
+    async function logout() {
+      await supabase.auth.signOut();
+      location.reload();
+    }
+
+    async function addProduct() {
+      const name = document.getElementById('p-name').value;
+      const price = document.getElementById('p-price').value;
+      const quantity = document.getElementById('p-qty').value;
+
+      if(!name || !price || !quantity) return alert("يرجى ملء جميع الحقول");
+
+      const { error } = await supabase.from('products').insert([
+        { "اسم القطعه": name, "سعر القطعه": price, "الكميه": quantity }
+      ]);
+
+      if (error) {
+        alert("حدث خطأ أثناء الإضافة: " + error.message);
+      } else {
+        alert("تمت الإضافة بنجاح!");
+        document.getElementById('p-name').value = '';
+        document.getElementById('p-price').value = '';
+        document.getElementById('p-qty').value = '';
+        loadProducts();
+      }
+    }
+
+    async function loadProducts() {
+      const { data, error } = await supabase.from('products').select('*');
+      if (!error && data) {
+        const tbody = document.getElementById('inventory-list');
+        tbody.innerHTML = '';
+        data.forEach(item => {
+          tbody.innerHTML += `<tr>
+            <td>${item["اسم القطعه"]}</td>
+            <td>${item["سعر القطعه"]} ج.م</td>
+            <td>${item["الكميه"]}</td>
+          </tr>`;
+        });
+      }
+    }
+  </script>
+</body>
+</html>
