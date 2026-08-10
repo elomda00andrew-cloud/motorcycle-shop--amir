@@ -17,7 +17,7 @@
 
     .dashboard-grid { 
       display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
       gap: 12px; 
       margin: 20px 0 30px 0; 
     }
@@ -47,7 +47,7 @@
     .nav-card .icon { font-size: 26px; margin-bottom: 6px; }
     .nav-card .title { font-weight: bold; font-size: 14px; }
 
-    .card { background: #fff; border-radius: 10px; padding: 25px; max-width: 900px; margin: 0 auto 20px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .card { background: #fff; border-radius: 10px; padding: 25px; max-width: 850px; margin: 0 auto 20px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; border-radius: 8px; overflow: hidden; }
     th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
     th { background: #007bff; color: white; }
@@ -85,17 +85,6 @@
       width: auto;
     }
 
-    .pay-btn {
-      background: #28a745;
-      color: white;
-      border: none;
-      padding: 6px 14px;
-      border-radius: 4px;
-      cursor: pointer;
-      width: auto;
-      font-weight: bold;
-    }
-
     .invoice-header-footer {
       font-size: 18px;
       font-weight: bold;
@@ -122,15 +111,6 @@
       gap: 10px;
     }
 
-    .installment-box {
-      background: #f0f9ff;
-      border: 1px solid #bae6fd;
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 15px;
-      text-align: right;
-    }
-
     .user-badge {
       background: #e2e8f0;
       padding: 6px 12px;
@@ -139,10 +119,6 @@
       font-weight: bold;
       color: #334155;
     }
-
-    .badge-overdue { background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-    .badge-upcoming { background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-    .badge-paid { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
 
     @media print {
       body * { visibility: hidden; }
@@ -186,10 +162,6 @@
       <div class="nav-card" onclick="switchPage('new-invoice-tab', this)">
         <span class="icon">🧾</span>
         <span class="title">فاتورة جديدة</span>
-      </div>
-      <div class="nav-card" onclick="switchPage('installments-tab', this)">
-        <span class="icon">📅</span>
-        <span class="title">إدارة الأقساط</span>
       </div>
       <div class="nav-card role-admin" onclick="switchPage('expenses-tab', this)">
         <span class="icon">💸</span>
@@ -335,36 +307,6 @@
           إجمالي الفاتورة الكلي: <span id="inv-grand-total">0</span> ج.م
         </div>
 
-        <!-- نظام طريقة الدفع والتقسيط -->
-        <div class="no-print" style="margin-top: 15px; text-align: right;">
-          <label style="font-weight: bold; font-size: 15px;">💳 طريقة الدفع:</label>
-          <select id="inv-payment-type" onchange="toggleInstallmentInputs()" style="font-weight:bold; max-width:200px; display:inline-block; margin-right:10px;">
-            <option value="cash">نقداً (كاش)</option>
-            <option value="installment">تقسيط (مقدم + أقساط)</option>
-          </select>
-
-          <div id="installment-fields" class="installment-box hidden">
-            <h4 style="margin-top:0; color:#0369a1;">⚙️ تفاصيل اتفاقية التقسيط:</h4>
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
-              <div>
-                <label style="font-weight:bold; font-size:12px;">المبلغ المدفوع (المقدم):</label>
-                <input type="number" id="inst-down-payment" value="0" oninput="calculateInstallmentsSummary()" placeholder="المقدم ج.م">
-              </div>
-              <div>
-                <label style="font-weight:bold; font-size:12px;">عدد الأقساط (بالشهور):</label>
-                <input type="number" id="inst-months" value="6" min="1" oninput="calculateInstallmentsSummary()" placeholder="عدد الشهور">
-              </div>
-              <div>
-                <label style="font-weight:bold; font-size:12px;">تاريخ استحقاق أول قسط:</label>
-                <input type="date" id="inst-start-date">
-              </div>
-            </div>
-            <div id="inst-calc-summary" style="margin-top:10px; font-weight:bold; color:#0c4a6e;">
-              المبلغ المتبقي للتقسيط: 0 ج.م | قيمة القسط الشهري: 0 ج.م
-            </div>
-          </div>
-        </div>
-
         <div class="invoice-header-footer invoice-footer">
           معرض نادي صبري لتجاره الموتسيكلات ( سوهاج - المراغه )
         </div>
@@ -376,48 +318,7 @@
       </div>
     </div>
 
-    <!-- 4. إدارة التقسيط والأقساط -->
-    <div id="installments-tab" class="page-content hidden">
-      <div class="card" style="border-right: 5px solid #d97706;">
-        <h3 style="color:#d97706; margin-top:0;">⚠️ تنبيهات الأقساط المستحقة المتأخرة والقادمة</h3>
-        <p style="font-size:13px; color:#666;">الأقساط المستحقة خلال هذا الأسبوع أو الأقساط المتأخرة التي تتطلب المتابعة والتحصيل:</p>
-        <table>
-          <thead>
-            <tr>
-              <th>اسم العميل</th>
-              <th>رقم الهاتف</th>
-              <th>رقم الفاتورة</th>
-              <th>تاريخ الاستحقاق</th>
-              <th>قيمة القسط</th>
-              <th>الحالة</th>
-              <th>إجراء</th>
-            </tr>
-          </thead>
-          <tbody id="urgent-installments-list"></tbody>
-        </table>
-      </div>
-
-      <div class="card">
-        <h3>سجل كافة الأقساط والعملاء 📑</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>اسم العميل</th>
-              <th>رقم الهاتف</th>
-              <th>رقم الفاتورة</th>
-              <th>تاريخ الاستحقاق</th>
-              <th>المبلغ</th>
-              <th>الحالة</th>
-              <th>تاريخ الدفع</th>
-              <th>تحصيل</th>
-            </tr>
-          </thead>
-          <tbody id="all-installments-list"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 5. المصروفات التشغيلية -->
+    <!-- 4. المصروفات التشغيلية -->
     <div id="expenses-tab" class="page-content hidden">
       <div class="card">
         <h3>تسجيل مصروف تشغيلي جديد 💸</h3>
@@ -452,7 +353,7 @@
       </table>
     </div>
 
-    <!-- 6. سجل المبيعات -->
+    <!-- 5. سجل المبيعات -->
     <div id="sales-log-tab" class="page-content hidden">
       <h3>سجل الفواتير والمبيعات 📑</h3>
       <table>
@@ -461,7 +362,7 @@
             <th>رقم الفاتورة</th>
             <th>اسم العميل</th>
             <th>رقم الهاتف</th>
-            <th>نوع الدفع</th>
+            <th>عدد الأصناف</th>
             <th>إجمالي الفاتورة</th>
             <th>التاريخ والوقت</th>
           </tr>
@@ -470,7 +371,7 @@
       </table>
     </div>
 
-    <!-- 7. حركة الخزينة اليومية -->
+    <!-- 6. حركة الخزينة اليومية -->
     <div id="cash-flow-tab" class="page-content hidden">
       <div class="card">
         <h3>حركة الخزينة اليومية 💵</h3>
@@ -512,7 +413,7 @@
       </table>
     </div>
 
-    <!-- 8. الأرباح والتقارير -->
+    <!-- 7. الأرباح والتقارير -->
     <div id="monthly-summary-tab" class="page-content hidden">
       <div class="card">
         <h3>تقرير صافي الأرباح المالي (Net Profit) 📊</h3>
@@ -530,7 +431,7 @@
       </div>
     </div>
 
-    <!-- 9. إدارة المستخدمين -->
+    <!-- 8. إدارة المستخدمين (للمدير فقط) -->
     <div id="users-manage-tab" class="page-content hidden">
       <div class="card">
         <h3>إضافة مستخدم / موظف جديد 👥</h3>
@@ -578,7 +479,6 @@
     var expensesLog = [];
     var cashTransactions = [];
     var usersList = [];
-    var installmentsList = [];
 
     window.onload = function() {
       if (typeof supabase !== 'undefined') {
@@ -586,10 +486,6 @@
       }
       document.getElementById('month-picker').value = new Date().toISOString().slice(0, 7);
       document.getElementById('cash-date-picker').value = new Date().toISOString().slice(0, 10);
-      
-      const nextMonthDate = new Date();
-      nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
-      document.getElementById('inst-start-date').value = nextMonthDate.toISOString().slice(0, 10);
     };
 
     function switchPage(pageId, cardElement) {
@@ -657,9 +553,6 @@
         const resCash = await client.from('cash_transactions').select('*').order('created_at', { ascending: false });
         if (resCash.data) cashTransactions = resCash.data;
 
-        const resInst = await client.from('installments').select('*').order('due_date', { ascending: true });
-        if (resInst.data) installmentsList = resInst.data;
-
         if (currentUser.role === 'admin') {
           const resUsers = await client.from('users').select('*');
           if (resUsers.data) usersList = resUsers.data;
@@ -670,31 +563,6 @@
       } catch (err) {
         console.error("خطأ أثناء جلب البيانات:", err);
       }
-    }
-
-    function toggleInstallmentInputs() {
-      const pType = document.getElementById('inv-payment-type').value;
-      const box = document.getElementById('installment-fields');
-      if(pType === 'installment') {
-        box.classList.remove('hidden');
-        calculateInstallmentsSummary();
-      } else {
-        box.classList.add('hidden');
-      }
-    }
-
-    function calculateInstallmentsSummary() {
-      let grandTotal = 0;
-      currentInvoiceCart.forEach(i => grandTotal += i.total);
-
-      const downPay = parseFloat(document.getElementById('inst-down-payment').value) || 0;
-      const months = parseInt(document.getElementById('inst-months').value) || 1;
-
-      const remaining = Math.max(0, grandTotal - downPay);
-      const monthlyAmount = months > 0 ? (remaining / months) : 0;
-
-      document.getElementById('inst-calc-summary').innerText = 
-        `المبلغ المتبقي للتقسيط: ${remaining.toLocaleString()} ج.م | قيمة القسط الشهري: ${monthlyAmount.toFixed(2)} ج.م`;
     }
 
     async function createNewUser() {
@@ -873,13 +741,11 @@
       selectedItemId = null;
 
       renderInvoiceCart();
-      calculateInstallmentsSummary();
     }
 
     function removeItemFromInvoice(index) {
       currentInvoiceCart.splice(index, 1);
       renderInvoiceCart();
-      calculateInstallmentsSummary();
     }
 
     function renderInvoiceCart() {
@@ -911,7 +777,6 @@
       const invId = document.getElementById('inv-id').value;
       const clientName = document.getElementById('inv-client-name').value.trim();
       const clientPhone = document.getElementById('inv-client-phone').value.trim();
-      const paymentType = document.getElementById('inv-payment-type').value;
 
       if(!clientName) return alert("يرجى كتابة اسم العميل");
       if(currentInvoiceCart.length === 0) return alert("يرجى إضافة صنف واحد على الأقل للفاتورة");
@@ -939,54 +804,15 @@
         items_count: currentInvoiceCart.length,
         grand_total: grandTotal,
         total_cogs: totalCogs,
-        payment_type: paymentType,
         time: timeString
       }]);
 
-      if (paymentType === 'cash') {
-        await client.from('cash_transactions').insert([{
-          desc_text: `فاتورة كاش ${invId} بواسطة (${currentUser.name}) للعميل: ${clientName}`,
-          type: 'in',
-          amount: grandTotal,
-          time: now.toLocaleTimeString('ar-EG')
-        }]);
-      } else {
-        const downPay = parseFloat(document.getElementById('inst-down-payment').value) || 0;
-        const months = parseInt(document.getElementById('inst-months').value) || 1;
-        const startDateStr = document.getElementById('inst-start-date').value;
-
-        if (downPay > 0) {
-          await client.from('cash_transactions').insert([{
-            desc_text: `مقدم فاتورة تقسيط ${invId} للعميل: ${clientName}`,
-            type: 'in',
-            amount: downPay,
-            time: now.toLocaleTimeString('ar-EG')
-          }]);
-        }
-
-        const remaining = grandTotal - downPay;
-        const monthlyAmount = months > 0 ? (remaining / months) : 0;
-        let baseDate = startDateStr ? new Date(startDateStr) : new Date();
-
-        let instRecords = [];
-        for (let i = 0; i < months; i++) {
-          let dueDate = new Date(baseDate);
-          dueDate.setMonth(dueDate.getMonth() + i);
-
-          instRecords.push({
-            sales_inv_id: invId,
-            client_name: clientName,
-            client_phone: clientPhone,
-            due_date: dueDate.toISOString().slice(0, 10),
-            amount: monthlyAmount,
-            status: 'pending'
-          });
-        }
-
-        if (instRecords.length > 0) {
-          await client.from('installments').insert(instRecords);
-        }
-      }
+      await client.from('cash_transactions').insert([{
+        desc_text: `فاتورة رقم ${invId} بواسطة (${currentUser.name}) للعميل: ${clientName}`,
+        type: 'in',
+        amount: grandTotal,
+        time: now.toLocaleTimeString('ar-EG')
+      }]);
 
       if(shouldPrint) {
         window.print();
@@ -996,37 +822,9 @@
 
       document.getElementById('inv-client-name').value = '';
       document.getElementById('inv-client-phone').value = '';
-      document.getElementById('inv-payment-type').value = 'cash';
-      toggleInstallmentInputs();
       currentInvoiceCart = [];
       renderInvoiceCart();
 
-      await loadAllDataFromSupabase();
-    }
-
-    async function payInstallment(instId, amount, clientName, invId) {
-      if(!confirm(`تأكيد تحصيل قسط بمبلغ ${amount.toLocaleString()} ج.م من العميل (${clientName})؟`)) return;
-
-      const now = new Date();
-
-      const { error } = await client
-        .from('installments')
-        .update({ 
-          status: 'paid', 
-          paid_at: now.toLocaleString('ar-EG') 
-        })
-        .eq('id', instId);
-
-      if (error) return alert("خطأ أثناء تحصيل القسط: " + error.message);
-
-      await client.from('cash_transactions').insert([{
-        desc_text: `تحصيل قسط فاتورة ${invId} للعميل: ${clientName} (بواسطة ${currentUser.name})`,
-        type: 'in',
-        amount: amount,
-        time: now.toLocaleTimeString('ar-EG')
-      }]);
-
-      alert("تم تحصيل القسط بنجاح وإيداعه في الخزينة!");
       await loadAllDataFromSupabase();
     }
 
@@ -1059,62 +857,6 @@
       renderCashFlow();
       renderMonthlySummary();
       renderUsersList();
-      renderInstallments();
-    }
-
-    function renderInstallments() {
-      const urgentTable = document.getElementById('urgent-installments-list');
-      const allTable = document.getElementById('all-installments-list');
-
-      urgentTable.innerHTML = '';
-      allTable.innerHTML = '';
-
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const nextWeekDate = new Date();
-      nextWeekDate.setDate(nextWeekDate.getDate() + 7);
-      const nextWeekStr = nextWeekDate.toISOString().slice(0, 10);
-
-      installmentsList.forEach(inst => {
-        const isPaid = inst.status === 'paid';
-        const isOverdue = !isPaid && inst.due_date < todayStr;
-        const isUpcoming = !isPaid && inst.due_date >= todayStr && inst.due_date <= nextWeekStr;
-
-        let statusBadge = '';
-        if (isPaid) statusBadge = `<span class="badge-paid">تم الدفع ✔️</span>`;
-        else if (isOverdue) statusBadge = `<span class="badge-overdue">متأخر ⚠️</span>`;
-        else statusBadge = `<span class="badge-upcoming">مستحق قريباً ⏳</span>`;
-
-        const payButtonHtml = isPaid ? '-' : `<button class="pay-btn" onclick="payInstallment('${inst.id}', ${inst.amount}, '${inst.client_name}', '${inst.sales_inv_id}')">تحصيل 💵</button>`;
-
-        const rowHtml = `<tr>
-          <td><b>${inst.client_name}</b></td>
-          <td>${inst.client_phone || '-'}</td>
-          <td>${inst.sales_inv_id}</td>
-          <td><b>${inst.due_date}</b></td>
-          <td><b>${inst.amount.toLocaleString()} ج.م</b></td>
-          <td>${statusBadge}</td>
-          <td>${inst.paid_at || '-'}</td>
-          <td>${payButtonHtml}</td>
-        </tr>`;
-
-        allTable.innerHTML += rowHtml;
-
-        if (isOverdue || isUpcoming) {
-          urgentTable.innerHTML += `<tr>
-            <td><b>${inst.client_name}</b></td>
-            <td>${inst.client_phone || '-'}</td>
-            <td>${inst.sales_inv_id}</td>
-            <td style="color:${isOverdue ? '#dc3545' : '#d97706'}; font-weight:bold;">${inst.due_date}</td>
-            <td><b>${inst.amount.toLocaleString()} ج.م</b></td>
-            <td>${statusBadge}</td>
-            <td>${payButtonHtml}</td>
-          </tr>`;
-        }
-      });
-
-      if (urgentTable.innerHTML === '') {
-        urgentTable.innerHTML = `<tr><td colspan="7" style="color:#28a745; font-weight:bold;">لا توجد أقساط متأخرة أو مستحقة هذا الأسبوع 🎉</td></tr>`;
-      }
     }
 
     function renderUsersList() {
@@ -1185,12 +927,11 @@
       const tbody = document.getElementById('sales-list');
       tbody.innerHTML = '';
       salesLog.forEach(s => {
-        const pTypeStr = s.payment_type === 'installment' ? '<span style="color:#0284c7; font-weight:bold;">تقسيط</span>' : '<span style="color:#16a34a; font-weight:bold;">كاش</span>';
         tbody.innerHTML += `<tr>
           <td><b>${s.inv_id}</b></td>
           <td>${s.client_name}</td>
           <td>${s.client_phone || 'غير مدخل'}</td>
-          <td>${pTypeStr}</td>
+          <td>${s.items_count} صنف</td>
           <td><b>${s.grand_total.toLocaleString()} ج.م</b></td>
           <td>${s.time}</td>
         </tr>`;
