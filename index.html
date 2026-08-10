@@ -17,15 +17,15 @@
 
     .dashboard-grid { 
       display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
-      gap: 15px; 
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
+      gap: 12px; 
       margin: 20px 0 30px 0; 
     }
     .nav-card { 
       background: #ffffff; 
       border: 2px solid #e2e8f0; 
       border-radius: 12px; 
-      padding: 15px 10px; 
+      padding: 15px 8px; 
       cursor: pointer; 
       transition: all 0.2s ease-in-out;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
@@ -44,8 +44,8 @@
       color: white; 
       border-color: #0056b3; 
     }
-    .nav-card .icon { font-size: 28px; margin-bottom: 8px; }
-    .nav-card .title { font-weight: bold; font-size: 15px; }
+    .nav-card .icon { font-size: 26px; margin-bottom: 6px; }
+    .nav-card .title { font-weight: bold; font-size: 14px; }
 
     .card { background: #fff; border-radius: 10px; padding: 25px; max-width: 800px; margin: 0 auto 20px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; border-radius: 8px; overflow: hidden; }
@@ -55,11 +55,22 @@
     .cash-summary { display: flex; justify-content: space-around; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; }
     .cash-in { color: #28a745; }
     .cash-out { color: #dc3545; }
+    
+    .invoice-total-box {
+      background: #e6fffa;
+      border: 2px dashed #319795;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-size: 20px;
+      font-weight: bold;
+      color: #234e52;
+    }
   </style>
 </head>
 <body>
 
-  <!-- شاشة تسجيل الدخول -->
+  <!-- تسجيل الدخول -->
   <div id="login-box">
     <h2>تسجيل الدخول للنظام 🔐</h2>
     <input type="email" id="email" placeholder="البريد الإلكتروني">
@@ -75,7 +86,7 @@
       <button onclick="logout()" style="width:auto; background:#dc3545; padding: 8px 20px;">تسجيل خروج 🚪</button>
     </div>
 
-    <!-- شبكة المربعات -->
+    <!-- شبكة الأقسام -->
     <div class="dashboard-grid">
       <div class="nav-card active" onclick="switchPage('showroom-tab', this)">
         <span class="icon">🏍️</span>
@@ -84,6 +95,10 @@
       <div class="nav-card" onclick="switchPage('parts-tab', this)">
         <span class="icon">🛠️</span>
         <span class="title">قطع الغيار والكماليات</span>
+      </div>
+      <div class="nav-card" onclick="switchPage('new-invoice-tab', this)">
+        <span class="icon">🧾</span>
+        <span class="title">فاتورة جديدة</span>
       </div>
       <div class="nav-card" onclick="switchPage('sales-log-tab', this)">
         <span class="icon">📑</span>
@@ -95,73 +110,121 @@
       </div>
       <div class="nav-card" onclick="switchPage('monthly-summary-tab', this)">
         <span class="icon">📊</span>
-        <span class="title">ملخص المبيعات والخزينة الشهرية</span>
+        <span class="title">ملخص المبيعات</span>
       </div>
     </div>
 
-    <!-- 1. مخزون المعرض -->
+    <!-- 1. مخزون المعرض (الموتوسيكلات) -->
     <div id="showroom-tab" class="page-content">
       <div class="card">
-        <h3>إضافة موتوسيكل للمعرض 🏍️</h3>
-        <input type="text" id="p-name" placeholder="اسم الموتوسيكل / الصنف">
-        <input type="number" id="p-price" placeholder="السعر (ج.م)">
-        <input type="number" id="p-qty" placeholder="الكمية">
-        <button onclick="addProduct()">حفظ الموتوسيكل</button>
+        <h3>إضافة موتوسيكل جديد للمعرض 🏍️</h3>
+        <input type="text" id="m-name" placeholder="نوع / اسم الموتوسيكل">
+        <input type="number" id="m-price" placeholder="السعر (ج.م)">
+        <input type="number" id="m-qty" placeholder="الكمية المتاحة">
+        <button onclick="addMotorcycle()">حفظ الموتوسيكل</button>
       </div>
 
-      <h3>المخزون الحالي بالمعرض</h3>
+      <h3>مخزون الموتوسيكلات بالمعرض</h3>
       <table>
         <thead>
           <tr>
-            <th>الصنف</th>
+            <th>اسم الموتوسيكل</th>
             <th>السعر</th>
             <th>الكمية المتاحة</th>
           </tr>
         </thead>
-        <tbody id="inventory-list"></tbody>
+        <tbody id="motorcycles-list"></tbody>
       </table>
     </div>
 
     <!-- 2. قطع الغيار والكماليات -->
     <div id="parts-tab" class="page-content hidden">
       <div class="card">
-        <h3>قطع الغيار والكماليات 🛠️</h3>
-        <p style="color:#666;">قسم إدارة قطعة الغيار والكماليات متوفر وجاهز للاستخدام.</p>
+        <h3>إضافة قطعة غيار / كماليات 🛠️</h3>
+        <input type="text" id="p-name" placeholder="اسم قطعة الغيار / الصنف">
+        <input type="number" id="p-price" placeholder="السعر (ج.م)">
+        <input type="number" id="p-qty" placeholder="الكمية المتاحة">
+        <button onclick="addPart()">حفظ الصنف</button>
       </div>
+
+      <h3>مخزون قطع الغيار والكماليات</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>اسم قطعة الغيار / الصنف</th>
+            <th>السعر</th>
+            <th>الكمية المتاحة</th>
+          </tr>
+        </thead>
+        <tbody id="parts-list"></tbody>
+      </table>
     </div>
 
-    <!-- 3. سجل المبيعات -->
-    <div id="sales-log-tab" class="page-content hidden">
+    <!-- 3. فاتورة جديدة -->
+    <div id="new-invoice-tab" class="page-content hidden">
       <div class="card">
-        <h3>سجل المبيعات اليومية 📑</h3>
-        <select id="sale-item-select" style="margin-bottom:10px;">
-          <option value="">اختر الصنف للبيع...</option>
+        <h3>إصدار فاتورة بيع جديدة 🧾</h3>
+        
+        <label style="display:block; text-align:right; font-weight:bold;">اختر الصنف من المخزون:</label>
+        <select id="inv-item-select" onchange="onInvoiceItemChange()">
+          <option value="">اختر الموتوسيكل أو قطعة الغيار...</option>
         </select>
-        <input type="number" id="sale-qty" placeholder="الكمية المباعة" value="1">
-        <input type="number" id="sale-total" placeholder="السعر الإجمالي (ج.م)">
-        <button onclick="recordSale()">تسجيل عملية البيع</button>
+
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <div style="flex:1;">
+            <label style="display:block; text-align:right; font-size:13px;">سعر القطعة (ج.م):</label>
+            <input type="number" id="inv-unit-price" readonly placeholder="السعر" style="background:#f0f0f0;">
+          </div>
+          <div style="flex:1;">
+            <label style="display:block; text-align:right; font-size:13px;">الكمية المطلوبة:</label>
+            <input type="number" id="inv-qty" value="1" min="1" oninput="calculateInvoiceTotal()">
+          </div>
+        </div>
+
+        <div class="invoice-total-box">
+          إجمالي الفاتورة: <span id="inv-total">0</span> ج.م
+        </div>
+
+        <button onclick="submitInvoice()" style="background:#28a745; font-size:18px; padding:15px;">تأكيد وإصدار الفاتورة ✔️</button>
       </div>
     </div>
 
-    <!-- 4. حركة الخزينة اليومية -->
+    <!-- 4. سجل المبيعات -->
+    <div id="sales-log-tab" class="page-content hidden">
+      <h3>سجل المبيعات والعمليات 📑</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>اسم الصنف</th>
+            <th>النوع</th>
+            <th>الكمية المباعة</th>
+            <th>إجمالي الفاتورة</th>
+            <th>التاريخ والوقت</th>
+          </tr>
+        </thead>
+        <tbody id="sales-list"></tbody>
+      </table>
+    </div>
+
+    <!-- 5. حركة الخزينة اليومية -->
     <div id="cash-flow-tab" class="page-content hidden">
       <div class="card">
         <h3>حركة الخزينة اليومية 💵</h3>
         
         <div class="cash-summary">
-          <div>إجمالي الوارد (مقبوضات): <span id="total-in" class="cash-in">0</span> ج.م</div>
-          <div>إجمالي المنصرف (مصروفات): <span id="total-out" class="cash-out">0</span> ج.م</div>
+          <div>إجمالي المقبوضات (وارد): <span id="total-in" class="cash-in">0</span> ج.م</div>
+          <div>إجمالي المصروفات (منصرف): <span id="total-out" class="cash-out">0</span> ج.م</div>
           <div>الرصيد الصافي: <span id="net-balance">0</span> ج.م</div>
         </div>
 
         <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: center;">
-          <input type="text" id="cash-desc" placeholder="البيان / السبب (مثلاً: بيع صنف / مصروفات نثريات)">
+          <input type="text" id="cash-desc" placeholder="البيان (مثلاً: مصروفات نثريات)">
           <select id="cash-type">
             <option value="in">وارد (+)</option>
             <option value="out">منصرف (-)</option>
           </select>
           <input type="number" id="cash-amount" placeholder="المبلغ">
-          <button onclick="addCashTransaction()" style="margin:8px 0;">تسجيل الحركة</button>
+          <button onclick="addManualCash()" style="margin:8px 0;">تسجيل حركة</button>
         </div>
       </div>
 
@@ -179,7 +242,7 @@
       </table>
     </div>
 
-    <!-- 5. ملخص المبيعات والخزينة الشهري -->
+    <!-- 6. ملخص المبيعات والخزينة الشهري -->
     <div id="monthly-summary-tab" class="page-content hidden">
       <div class="card">
         <h3>ملخص المبيعات والخزينة الشهري 📊</h3>
@@ -193,6 +256,16 @@
     const SUPABASE_URL = "https://gqcrmfwbqbdlimhwiovm.supabase.co";
     const SUPABASE_KEY = "sb_publishable_e20NbhSf0QwDoQz54EdGcw_n0UuY3Y6";
     var client;
+
+    // البيانات المحلية المحاكاة للتبسيط والمزامنة الفورية
+    var inventory = [
+      { id: 1, name: "موتوسيكل دايون 4", price: 35000, qty: 5, category: "موتوسيكل" },
+      { id: 2, name: "موتوسيكل هوجان فلامنجو", price: 38000, qty: 3, category: "موتوسيكل" },
+      { id: 3, name: "زيت موتور توتال", price: 250, qty: 20, category: "قطع غيار" },
+      { id: 4, name: "خوذة سباق", price: 800, qty: 10, category: "قطع غيار" }
+    ];
+
+    var salesLog = [];
     var cashTransactions = [];
 
     window.onload = function() {
@@ -200,6 +273,7 @@
         client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       }
       document.getElementById('month-picker').value = new Date().toISOString().slice(0, 7);
+      renderAll();
     };
 
     function switchPage(pageId, cardElement) {
@@ -223,7 +297,7 @@
       } else {
         document.getElementById('login-box').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
-        loadProducts();
+        renderAll();
       }
     }
 
@@ -232,52 +306,115 @@
       location.reload();
     }
 
-    async function addProduct() {
-      const name = document.getElementById('p-name').value;
-      const price = document.getElementById('p-price').value;
-      const quantity = document.getElementById('p-qty').value;
+    // --- 1. إضافة للمخزون ---
+    function addMotorcycle() {
+      const name = document.getElementById('m-name').value.trim();
+      const price = parseFloat(document.getElementById('m-price').value);
+      const qty = parseInt(document.getElementById('m-qty').value);
 
-      if(!name || !price || !quantity) return alert("يرجى ملء جميع الحقول");
+      if(!name || !price || !qty) return alert("يرجى ملء جميع حقول الموتوسيكل");
 
-      const { error } = await client.from('products').insert([
-        { "اسم القطعه": name, "سعر القطعه": price, "الكميه": quantity }
-      ]);
+      inventory.push({ id: Date.now(), name, price, qty, category: "موتوسيكل" });
+      document.getElementById('m-name').value = '';
+      document.getElementById('m-price').value = '';
+      document.getElementById('m-qty').value = '';
+      
+      alert("تم إضافة الموتوسيكل للمخزون بنجاح!");
+      renderAll();
+    }
 
-      if (error) {
-        alert("حدث خطأ أثناء الإضافة: " + error.message);
-      } else {
-        alert("تمت الإضافة بنجاح!");
-        document.getElementById('p-name').value = '';
-        document.getElementById('p-price').value = '';
-        document.getElementById('p-qty').value = '';
-        loadProducts();
+    function addPart() {
+      const name = document.getElementById('p-name').value.trim();
+      const price = parseFloat(document.getElementById('p-price').value);
+      const qty = parseInt(document.getElementById('p-qty').value);
+
+      if(!name || !price || !qty) return alert("يرجى ملء جميع حقول قطعة الغيار");
+
+      inventory.push({ id: Date.now(), name, price, qty, category: "قطع غيار" });
+      document.getElementById('p-name').value = '';
+      document.getElementById('p-price').value = '';
+      document.getElementById('p-qty').value = '';
+      
+      alert("تم إضافة الصنف لقطع الغيار بنجاح!");
+      renderAll();
+    }
+
+    // --- 2. إدارة الفاتورة ---
+    function onInvoiceItemChange() {
+      const select = document.getElementById('inv-item-select');
+      const selectedId = select.value;
+      
+      if(!selectedId) {
+        document.getElementById('inv-unit-price').value = '';
+        calculateInvoiceTotal();
+        return;
+      }
+
+      const item = inventory.find(i => i.id == selectedId);
+      if(item) {
+        document.getElementById('inv-unit-price').value = item.price;
+        calculateInvoiceTotal();
       }
     }
 
-    async function loadProducts() {
-      const { data, error } = await client.from('products').select('*');
-      if (!error && data) {
-        const tbody = document.getElementById('inventory-list');
-        const select = document.getElementById('sale-item-select');
-        tbody.innerHTML = '';
-        select.innerHTML = '<option value="">اختر الصنف للبيع...</option>';
-        data.forEach(item => {
-          tbody.innerHTML += `<tr>
-            <td>${item["اسم القطعه"]}</td>
-            <td>${item["سعر القطعه"]} ج.م</td>
-            <td>${item["الكميه"]}</td>
-          </tr>`;
-          select.innerHTML += `<option value="${item["اسم القطعه"]}">${item["اسم القطعه"]}</option>`;
-        });
+    function calculateInvoiceTotal() {
+      const price = parseFloat(document.getElementById('inv-unit-price').value) || 0;
+      const qty = parseInt(document.getElementById('inv-qty').value) || 0;
+      const total = price * qty;
+      document.getElementById('inv-total').innerText = total.toLocaleString();
+    }
+
+    function submitInvoice() {
+      const select = document.getElementById('inv-item-select');
+      const itemId = select.value;
+      const qty = parseInt(document.getElementById('inv-qty').value);
+
+      if (!itemId) return alert("يرجى اختيار صنف من القائمة");
+      if (!qty || qty <= 0) return alert("يرجى تحديد كمية صحيحة");
+
+      const item = inventory.find(i => i.id == itemId);
+
+      if (item.qty < qty) {
+        return alert(`الكمية المتاحة في المخزون (${item.qty}) غير كافية!`);
       }
+
+      const totalAmount = item.price * qty;
+      const timeString = new Date().toLocaleString('ar-EG');
+
+      // 1. تنقيص الكمية من المخزون تلقائياً
+      item.qty -= qty;
+
+      // 2. تسجيل الفاتورة في سجل المبيعات
+      salesLog.push({
+        name: item.name,
+        category: item.category,
+        qty: qty,
+        total: totalAmount,
+        time: timeString
+      });
+
+      // 3. إضافة المبلغ تلقائياً في حركة الخزينة اليومية (وارد)
+      cashTransactions.push({
+        desc: `فاتورة بيع: ${item.name} (${qty})`,
+        type: 'in',
+        amount: totalAmount,
+        time: new Date().toLocaleTimeString('ar-EG')
+      });
+
+      alert(`تمت عملية البيع بنجاح! \nإجمالي الفاتورة: ${totalAmount} ج.م`);
+
+      // إعادة ضبط الفاتورة وتحديث كل الجداول
+      select.value = '';
+      document.getElementById('inv-unit-price').value = '';
+      document.getElementById('inv-qty').value = '1';
+      calculateInvoiceTotal();
+
+      renderAll();
     }
 
-    async function recordSale() {
-      alert("تم تسجيل عملية البيع بنجاح!");
-    }
-
-    function addCashTransaction() {
-      const desc = document.getElementById('cash-desc').value;
+    // --- 3. تسجيل الخزينة اليدوي ---
+    function addManualCash() {
+      const desc = document.getElementById('cash-desc').value.trim();
       const type = document.getElementById('cash-type').value;
       const amount = parseFloat(document.getElementById('cash-amount').value);
 
@@ -292,6 +429,64 @@
       document.getElementById('cash-amount').value = '';
 
       renderCashFlow();
+    }
+
+    // --- 4. عرض وتحديث الجداول ---
+    function renderAll() {
+      renderShowroom();
+      renderParts();
+      renderInvoiceDropdown();
+      renderSalesLog();
+      renderCashFlow();
+    }
+
+    function renderShowroom() {
+      const tbody = document.getElementById('motorcycles-list');
+      tbody.innerHTML = '';
+      inventory.filter(i => i.category === "موتوسيكل").forEach(m => {
+        tbody.innerHTML += `<tr>
+          <td>${m.name}</td>
+          <td>${m.price.toLocaleString()} ج.م</td>
+          <td><b>${m.qty}</b></td>
+        </tr>`;
+      });
+    }
+
+    function renderParts() {
+      const tbody = document.getElementById('parts-list');
+      tbody.innerHTML = '';
+      inventory.filter(i => i.category === "قطع غيار").forEach(p => {
+        tbody.innerHTML += `<tr>
+          <td>${p.name}</td>
+          <td>${p.price.toLocaleString()} ج.م</td>
+          <td><b>${p.qty}</b></td>
+        </tr>`;
+      });
+    }
+
+    function renderInvoiceDropdown() {
+      const select = document.getElementById('inv-item-select');
+      select.innerHTML = '<option value="">اختر الموتوسيكل أو قطعة الغيار...</option>';
+
+      inventory.forEach(item => {
+        if(item.qty > 0) {
+          select.innerHTML += `<option value="${item.id}">[${item.category}] ${item.name} - (المتاح: ${item.qty})</option>`;
+        }
+      });
+    }
+
+    function renderSalesLog() {
+      const tbody = document.getElementById('sales-list');
+      tbody.innerHTML = '';
+      salesLog.forEach(s => {
+        tbody.innerHTML += `<tr>
+          <td>${s.name}</td>
+          <td>${s.category}</td>
+          <td>${s.qty}</td>
+          <td><b>${s.total.toLocaleString()} ج.م</b></td>
+          <td>${s.time}</td>
+        </tr>`;
+      });
     }
 
     function renderCashFlow() {
@@ -309,14 +504,14 @@
         tbody.innerHTML += `<tr>
           <td>${t.desc}</td>
           <td>${typeLabel}</td>
-          <td>${t.amount} ج.م</td>
+          <td>${t.amount.toLocaleString()} ج.م</td>
           <td>${t.time}</td>
         </tr>`;
       });
 
-      document.getElementById('total-in').innerText = totalIn;
-      document.getElementById('total-out').innerText = totalOut;
-      document.getElementById('net-balance').innerText = totalIn - totalOut;
+      document.getElementById('total-in').innerText = totalIn.toLocaleString();
+      document.getElementById('total-out').innerText = totalOut.toLocaleString();
+      document.getElementById('net-balance').innerText = (totalIn - totalOut).toLocaleString();
     }
   </script>
 </body>
