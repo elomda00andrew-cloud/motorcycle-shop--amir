@@ -75,9 +75,9 @@
     </div>
 
     <script>
-        // إعدادات الربط مع مشروع Supabase الجديد
+        // إعدادات الربط مع مشروع Supabase باستخدام مفتاح anon الصحيح
         const supabaseUrl = 'https://byrkgnqkovmsepbpknyc.supabase.co';
-        const supabaseKey = 'sb_publishable_ed0x-T4S4lcKREn6nYVATA_dua5w';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5cmtnbnFrb3Ztc2VwYnBrbnljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzNDcyNjIsImV4cCI6MjEwMTkyMzI2Mn0.brTfe8HPjGTg53_4bDdZMM6be7QlmNfxvNSd-sIwXLw';
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
         const loginForm = document.getElementById('loginForm');
@@ -109,9 +109,9 @@
                     return;
                 }
 
-                // عند النجاح
+                // عند نجاح عملية تسجيل الدخول
                 alert('تم تسجيل الدخول بنجاح!');
-                // window.location.href = 'dashboard.html'; // يمكنك تفعيل هذا السطر لتحويل المستخدم
+                // window.location.href = 'dashboard.html';
 
             } catch (err) {
                 console.error(err);
