@@ -1,1005 +1,123 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>معرض نادي صبري للموتسيكلات</title>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eef2f5; margin: 0; padding: 20px; text-align: center; }
-    
-    #login-box { background: #fff; border-radius: 12px; padding: 30px; max-width: 400px; margin: 40px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    input, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 15px; }
-    button { background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
-    button:hover { opacity: 0.9; }
-
-    .hidden { display: none !important; }
-
-    .dashboard-grid { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
-      gap: 12px; 
-      margin: 20px 0 30px 0; 
-    }
-    .nav-card { 
-      background: #ffffff; 
-      border: 2px solid #e2e8f0; 
-      border-radius: 12px; 
-      padding: 15px 8px; 
-      cursor: pointer; 
-      transition: all 0.2s ease-in-out;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .nav-card:hover { 
-      transform: translateY(-3px); 
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      border-color: #007bff;
-    }
-    .nav-card.active { 
-      background: #007bff; 
-      color: white; 
-      border-color: #0056b3; 
-    }
-    .nav-card .icon { font-size: 26px; margin-bottom: 6px; }
-    .nav-card .title { font-weight: bold; font-size: 14px; }
-
-    .card { background: #fff; border-radius: 10px; padding: 25px; max-width: 850px; margin: 0 auto 20px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; border-radius: 8px; overflow: hidden; }
-    th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
-    th { background: #007bff; color: white; }
-    
-    .cash-summary { display: flex; justify-content: space-around; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; flex-wrap: wrap; gap: 10px; }
-    .cash-in { color: #28a745; }
-    .cash-out { color: #dc3545; }
-    
-    .profit-card {
-      background: #eefbf3;
-      border: 2px dashed #28a745;
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 15px;
-    }
-
-    .invoice-total-box {
-      background: #e6fffa;
-      border: 2px dashed #319795;
-      padding: 15px;
-      border-radius: 8px;
-      margin: 15px 0;
-      font-size: 22px;
-      font-weight: bold;
-      color: #234e52;
-    }
-
-    .delete-btn {
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      width: auto;
-    }
-
-    .invoice-header-footer {
-      font-size: 18px;
-      font-weight: bold;
-      color: #333;
-      padding: 10px 0;
-    }
-    .invoice-header {
-      border-bottom: 2px solid #007bff;
-      margin-bottom: 15px;
-    }
-    .invoice-footer {
-      border-top: 2px solid #007bff;
-      margin-top: 20px;
-    }
-
-    .bike-details-box {
-      background: #fff8e1;
-      border: 1px solid #ffe082;
-      padding: 10px;
-      border-radius: 6px;
-      margin-top: 10px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .user-badge {
-      background: #e2e8f0;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: bold;
-      color: #334155;
-    }
-
-    @media print {
-      body * { visibility: hidden; }
-      #print-area, #print-area * { visibility: visible; }
-      #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; }
-      .no-print { display: none !important; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معرض نادي صبري للموتوسيكلات - تسجيل الدخول</title>
+    <!-- مكتبة Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+        }
+        h2 {
+            font-size: 20px;
+            color: #0f172a;
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            text-align: left;
+            direction: ltr;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #15803d;
+        }
+        .error {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- تسجيل الدخول -->
-  <div id="login-box">
-    <h2>معرض نادي صبري للموتسيكلات 🔐</h2>
-    <input type="text" id="login-username" placeholder="اسم المستخدم / البريد">
-    <input type="password" id="login-password" placeholder="كلمة المرور">
-    <button type="button" onclick="login()">دخول</button>
-    <p id="msg" style="color:red; font-weight:bold; margin-top:15px;"></p>
-  </div>
-
-  <!-- التطبيق الرئيسي -->
-  <div id="app" class="hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;" class="no-print">
-      <h2 style="margin:0;">معرض نادي صبري للموتسيكلات 🛵</h2>
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span id="current-user-info" class="user-badge"></span>
-        <button onclick="logout()" style="width:auto; background:#dc3545; padding: 8px 20px;">تسجيل خروج 🚪</button>
-      </div>
+    <div class="card">
+        <h2>معرض نادي صبري للموتوسيكلات 🔐</h2>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="andrew2emad12@gmail.com" required>
+            <input type="password" id="password" placeholder="••••••••" required>
+            <button type="submit">دخول</button>
+        </form>
+        <div id="errorMessage" class="error"></div>
     </div>
 
-    <!-- شبكة الأقسام -->
-    <div class="dashboard-grid no-print">
-      <div class="nav-card active" onclick="switchPage('showroom-tab', this)">
-        <span class="icon">🏍️</span>
-        <span class="title">مخزون المعرض</span>
-      </div>
-      <div class="nav-card" onclick="switchPage('parts-tab', this)">
-        <span class="icon">🛠️</span>
-        <span class="title">قطع الغيار</span>
-      </div>
-      <div class="nav-card" onclick="switchPage('new-invoice-tab', this)">
-        <span class="icon">🧾</span>
-        <span class="title">فاتورة جديدة</span>
-      </div>
-      <div class="nav-card role-admin" onclick="switchPage('expenses-tab', this)">
-        <span class="icon">💸</span>
-        <span class="title">المصروفات</span>
-      </div>
-      <div class="nav-card" onclick="switchPage('sales-log-tab', this)">
-        <span class="icon">📑</span>
-        <span class="title">سجل المبيعات</span>
-      </div>
-      <div class="nav-card role-admin" onclick="switchPage('cash-flow-tab', this)">
-        <span class="icon">💵</span>
-        <span class="title">حركة الخزينة</span>
-      </div>
-      <div class="nav-card role-admin" onclick="switchPage('monthly-summary-tab', this)">
-        <span class="icon">📊</span>
-        <span class="title">الأرباح والتقارير</span>
-      </div>
-      <div class="nav-card role-admin" onclick="switchPage('users-manage-tab', this)">
-        <span class="icon">👥</span>
-        <span class="title">إدارة المستخدمين</span>
-      </div>
-    </div>
-
-    <!-- 1. مخزون المعرض -->
-    <div id="showroom-tab" class="page-content">
-      <div class="card">
-        <h3>إضافة موتوسيكل جديد للمعرض 🏍️</h3>
-        <input type="text" id="m-name" placeholder="نوع / اسم الموتوسيكل">
-        <div style="display:flex; gap:10px;">
-          <input type="number" id="m-cost" placeholder="سعر الشراء (التكلفة)">
-          <input type="number" id="m-price" placeholder="سعر البيع (ج.م)">
-        </div>
-        <input type="number" id="m-qty" placeholder="الكمية المتاحة">
-        <button onclick="addMotorcycle()">حفظ الموتوسيكل</button>
-      </div>
-
-      <h3>مخزون الموتوسيكلات بالمعرض</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>اسم الموتوسيكل</th>
-            <th>تكلفة الشراء</th>
-            <th>سعر البيع</th>
-            <th>الكمية المتاحة</th>
-          </tr>
-        </thead>
-        <tbody id="motorcycles-list"></tbody>
-      </table>
-    </div>
-
-    <!-- 2. قطع الغيار -->
-    <div id="parts-tab" class="page-content hidden">
-      <div class="card">
-        <h3>إضافة قطعة غيار / كماليات 🛠️</h3>
-        <input type="text" id="p-name" placeholder="اسم قطعة الغيار / الصنف">
-        <div style="display:flex; gap:10px;">
-          <input type="number" id="p-cost" placeholder="سعر الشراء (التكلفة)">
-          <input type="number" id="p-price" placeholder="سعر البيع (ج.م)">
-        </div>
-        <input type="number" id="p-qty" placeholder="الكمية المتاحة">
-        <button onclick="addPart()">حفظ الصنف</button>
-      </div>
-
-      <h3>مخزون قطع الغيار والكماليات</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>اسم قطعة الغيار / الصنف</th>
-            <th>تكلفة الشراء</th>
-            <th>سعر البيع</th>
-            <th>الكمية المتاحة</th>
-          </tr>
-        </thead>
-        <tbody id="parts-list"></tbody>
-      </table>
-    </div>
-
-    <!-- 3. فاتورة جديدة -->
-    <div id="new-invoice-tab" class="page-content hidden">
-      <div class="card" id="print-area">
-        <div class="invoice-header-footer invoice-header">
-          معرض نادي صبري لتجاره الموتسيكلات ( سوهاج - المراغه )
-        </div>
-
-        <h3>إصدار فاتورة بيع جديدة 🧾</h3>
-        
-        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:15px; text-align:right;">
-          <div>
-            <label style="font-weight:bold; font-size:13px;">رقم الفاتورة (آلي):</label>
-            <input type="text" id="inv-id" readonly style="background:#f0f0f0; font-weight:bold;">
-          </div>
-          <div>
-            <label style="font-weight:bold; font-size:13px;">اسم العميل:</label>
-            <input type="text" id="inv-client-name" placeholder="اسم العميل">
-          </div>
-          <div>
-            <label style="font-weight:bold; font-size:13px;">رقم الهاتف:</label>
-            <input type="text" id="inv-client-phone" placeholder="رقم الهاتف">
-          </div>
-        </div>
-
-        <hr style="border:0; border-top:1px solid #eee; margin:15px 0;" class="no-print">
-
-        <div class="no-print">
-          <label style="display:block; text-align:right; font-weight:bold;">🔍 ابحث باسم الصنف لإضافته للفاتورة:</label>
-          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:10px; align-items:center;">
-            <div>
-              <input type="text" id="inv-search" list="items-datalist" placeholder="اكتب أول حروف من الصنف..." oninput="onInvoiceItemSearch()">
-              <datalist id="items-datalist"></datalist>
-            </div>
-            <input type="number" id="inv-unit-price" readonly placeholder="السعر" style="background:#f0f0f0;">
-            <input type="number" id="inv-qty" value="1" min="1" placeholder="الكمية">
-            <button onclick="addItemToInvoice()" style="background:#007bff; width:auto; margin:8px 0; padding:12px 20px;">+ إضافة للصنف</button>
-          </div>
-
-          <div id="bike-spec-fields" class="bike-details-box hidden">
-            <div>
-              <label style="font-weight:bold; font-size:13px; color:#d97706; display:block; text-align:right;">* رقم الشاسية (إجباري):</label>
-              <input type="text" id="inv-chassis-no" placeholder="أدخل رقم الشاسية">
-            </div>
-            <div>
-              <label style="font-weight:bold; font-size:13px; color:#d97706; display:block; text-align:right;">* رقم الموتور (إجباري):</label>
-              <input type="text" id="inv-engine-no" placeholder="أدخل رقم الموتور">
-            </div>
-          </div>
-        </div>
-
-        <h4 style="margin-top:20px; text-align:right;">الأصناف المضافة للفاتورة:</h4>
-        <table>
-          <thead>
-            <tr>
-              <th>الصنف والتفاصيل</th>
-              <th>سعر الوحدة</th>
-              <th>الكمية</th>
-              <th>الإجمالي</th>
-              <th class="no-print">إزالة</th>
-            </tr>
-          </thead>
-          <tbody id="invoice-items-table"></tbody>
-        </table>
-
-        <div class="invoice-total-box">
-          إجمالي الفاتورة الكلي: <span id="inv-grand-total">0</span> ج.م
-        </div>
-
-        <div class="invoice-header-footer invoice-footer">
-          معرض نادي صبري لتجاره الموتسيكلات ( سوهاج - المراغه )
-        </div>
-
-        <div style="display:flex; gap:10px; margin-top:20px;" class="no-print">
-          <button onclick="submitInvoice(true)" style="background:#28a745; font-size:18px; padding:15px; flex:1;">تأكيد وطباعة الفاتورة 🖨️</button>
-          <button onclick="submitInvoice(false)" style="background:#17a2b8; font-size:18px; padding:15px; flex:1;">حفظ فقط بدون طباعة ✔️</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. المصروفات التشغيلية -->
-    <div id="expenses-tab" class="page-content hidden">
-      <div class="card">
-        <h3>تسجيل مصروف تشغيلي جديد 💸</h3>
-        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
-          <select id="exp-category">
-            <option value="إيجار">إيجار المعرض</option>
-            <option value="كهرباء ومرافق">كهرباء ومرافق</option>
-            <option value="رواتب">رواتب وأجور</option>
-            <option value="نقل وسفريات">نقل ونولون</option>
-            <option value="شراء بضاعة">شراء بضاعة</option>
-            <option value="إكراميات ونثريات">إكراميات ونثريات</option>
-            <option value="صيانة">صيانة وتجهيزات</option>
-            <option value="أخرى">مصاريف أخرى</option>
-          </select>
-          <input type="number" id="exp-amount" placeholder="المبلغ (ج.م)">
-          <input type="text" id="exp-note" placeholder="ملاحظات / تفاصيل المصروف">
-        </div>
-        <button onclick="addExpense()" style="margin-top:10px; background:#dc3545;">تسجيل المصروف</button>
-      </div>
-
-      <h3>سجل المصروفات التشغيلية</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>بند المصروف</th>
-            <th>المبلغ</th>
-            <th>التفاصيل / البيان</th>
-            <th>التاريخ والوقت</th>
-          </tr>
-        </thead>
-        <tbody id="expenses-list"></tbody>
-      </table>
-    </div>
-
-    <!-- 5. سجل المبيعات -->
-    <div id="sales-log-tab" class="page-content hidden">
-      <h3>سجل الفواتير والمبيعات 📑</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>رقم الفاتورة</th>
-            <th>اسم العميل</th>
-            <th>رقم الهاتف</th>
-            <th>عدد الأصناف</th>
-            <th>إجمالي الفاتورة</th>
-            <th>التاريخ والوقت</th>
-          </tr>
-        </thead>
-        <tbody id="sales-list"></tbody>
-      </table>
-    </div>
-
-    <!-- 6. حركة الخزينة اليومية -->
-    <div id="cash-flow-tab" class="page-content hidden">
-      <div class="card">
-        <h3>حركة الخزينة اليومية 💵</h3>
-
-        <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
-          <label style="font-weight: bold;">📅 اختر التاريخ لمراجعة اليوم:</label>
-          <input type="date" id="cash-date-picker" style="max-width: 220px; margin: 0;" onchange="renderCashFlow()">
-        </div>
-        
-        <div class="cash-summary">
-          <div>إجمالي المقبوضات (وارد): <span id="total-in" class="cash-in">0</span> ج.م</div>
-          <div>إجمالي المدفوعات (منصرف): <span id="total-out" class="cash-out">0</span> ج.م</div>
-          <div>الرصيد الصافي لليوم المحدد: <span id="net-balance">0</span> ج.م</div>
-        </div>
-
-        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: center;">
-          <input type="text" id="cash-desc" placeholder="البيان (مثلاً: إيداع رأس مال)">
-          <select id="cash-type">
-            <option value="in">وارد (+)</option>
-            <option value="out">منصرف (-)</option>
-          </select>
-          <input type="number" id="cash-amount" placeholder="المبلغ">
-          <button onclick="addManualCash()" style="margin:8px 0;">تسجيل حركة</button>
-        </div>
-      </div>
-
-      <h3>سجل المعاملات النقدية</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>البيان</th>
-            <th>نوع الحركة</th>
-            <th>المبلغ</th>
-            <th>التاريخ</th>
-            <th>الوقت</th>
-          </tr>
-        </thead>
-        <tbody id="cash-list"></tbody>
-      </table>
-    </div>
-
-    <!-- 7. الأرباح والتقارير -->
-    <div id="monthly-summary-tab" class="page-content hidden">
-      <div class="card">
-        <h3>تقرير صافي الأرباح المالي (Net Profit) 📊</h3>
-        <input type="month" id="month-picker" style="max-width:250px; margin:auto;" onchange="renderMonthlySummary()">
-        
-        <div class="cash-summary" style="margin-top:20px;">
-          <div>إجمالي المبيعات: <span id="m-sales-total" class="cash-in">0</span> ج.م</div>
-          <div>تكلفة البضاعة المباعة: <span id="m-cogs-total" style="color:#d97706;">0</span> ج.م</div>
-          <div>المصروفات التشغيلية: <span id="m-expenses-total" class="cash-out">0</span> ج.م</div>
-        </div>
-
-        <div class="profit-card">
-          <h2 style="margin:0; font-size: 24px;">صافي الربح الحقيقي: <span id="m-net-profit" style="color:#28a745;">0</span> ج.م</h2>
-        </div>
-      </div>
-    </div>
-
-    <!-- 8. إدارة المستخدمين (للمدير فقط) -->
-    <div id="users-manage-tab" class="page-content hidden">
-      <div class="card">
-        <h3>إضافة مستخدم / موظف جديد 👥</h3>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-          <input type="text" id="u-name" placeholder="اسم الموظف / المستخدم">
-          <input type="text" id="u-username" placeholder="اسم الدخول (اسم المستخدم)">
-        </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-          <input type="password" id="u-password" placeholder="كلمة المرور">
-          <select id="u-role">
-            <option value="cashier">كاشير / مبيعات</option>
-            <option value="admin">مدير نظام (كامل الصلاحيات)</option>
-          </select>
-        </div>
-        <button onclick="createNewUser()" style="margin-top:10px; background:#007bff;">إضافة المستخدم</button>
-      </div>
-
-      <h3>قائمة المستخدمين المسجلين</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>الاسم</th>
-            <th>اسم المستخدم</th>
-            <th>الصلاحية</th>
-            <th>إجراء</th>
-          </tr>
-        </thead>
-        <tbody id="users-list"></tbody>
-      </table>
-    </div>
-
-  </div>
-
-  <script>
-    const SUPABASE_URL = "https://gqcrmfwbqbdlimhwiovm.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_e20NbhSf0QwDoQz54EdGcw_n0UuY3Y6";
-    var client;
-
-    var currentUser = null;
-    var selectedItemId = null;
-    var currentInvoiceCart = [];
-
-    var inventory = [];
-    var salesLog = [];
-    var expensesLog = [];
-    var cashTransactions = [];
-    var usersList = [];
-
-    window.onload = function() {
-      if (typeof supabase !== 'undefined') {
-        client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      }
-      document.getElementById('month-picker').value = new Date().toISOString().slice(0, 7);
-      document.getElementById('cash-date-picker').value = new Date().toISOString().slice(0, 10);
-    };
-
-    function switchPage(pageId, cardElement) {
-      document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
-      document.querySelectorAll('.nav-card').forEach(c => c.classList.remove('active'));
-      
-      document.getElementById(pageId).classList.remove('hidden');
-      if (cardElement) cardElement.classList.add('active');
-    }
-
-    async function login() {
-      const msg = document.getElementById('msg');
-      const username = document.getElementById('login-username').value.trim();
-      const password = document.getElementById('login-password').value.trim();
-
-      if(!username || !password) return msg.innerText = "يرجى كتابة اسم المستخدم وكلمة المرور";
-
-      if (!client) client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-      const { data, error } = await client
-        .from('users')
-        .select('*')
-        .eq('username', username)
-        .eq('password', password)
-        .single();
-
-      if (error || !data) {
-        msg.innerText = "اسم المستخدم أو كلمة المرور غير صحيحة";
-      } else {
-        currentUser = data;
-        document.getElementById('login-box').classList.add('hidden');
-        document.getElementById('app').classList.remove('hidden');
-        
-        document.getElementById('current-user-info').innerText = `المستخدم: ${currentUser.name} (${currentUser.role === 'admin' ? 'مدير' : 'كاشير'})`;
-
-        applyRolePermissions();
-        await loadAllDataFromSupabase();
-      }
-    }
-
-    function applyRolePermissions() {
-      if (currentUser.role !== 'admin') {
-        document.querySelectorAll('.role-admin').forEach(el => el.classList.add('hidden'));
-      } else {
-        document.querySelectorAll('.role-admin').forEach(el => el.classList.remove('hidden'));
-      }
-    }
-
-    function logout() {
-      currentUser = null;
-      location.reload();
-    }
-
-    async function loadAllDataFromSupabase() {
-      try {
-        const resInv = await client.from('inventory').select('*');
-        if (resInv.data) inventory = resInv.data;
-
-        const resSales = await client.from('sales').select('*').order('created_at', { ascending: false });
-        if (resSales.data) salesLog = resSales.data;
-
-        const resExp = await client.from('expenses').select('*').order('created_at', { ascending: false });
-        if (resExp.data) expensesLog = resExp.data;
-
-        const resCash = await client.from('cash_transactions').select('*').order('created_at', { ascending: false });
-        if (resCash.data) cashTransactions = resCash.data;
-
-        if (currentUser.role === 'admin') {
-          const resUsers = await client.from('users').select('*');
-          if (resUsers.data) usersList = resUsers.data;
-        }
-
-        generateNextInvoiceId();
-        renderAll();
-      } catch (err) {
-        console.error("خطأ أثناء جلب البيانات:", err);
-      }
-    }
-
-    async function createNewUser() {
-      const name = document.getElementById('u-name').value.trim();
-      const username = document.getElementById('u-username').value.trim();
-      const password = document.getElementById('u-password').value.trim();
-      const role = document.getElementById('u-role').value;
-
-      if (!name || !username || !password) return alert("يرجى ملء كافة البيانات");
-
-      const { error } = await client.from('users').insert([{ name, username, password, role }]);
-
-      if (error) return alert("خطأ في الإضافة: " + error.message);
-
-      alert("تمت إضافة المستخدم بنجاح!");
-      document.getElementById('u-name').value = '';
-      document.getElementById('u-username').value = '';
-      document.getElementById('u-password').value = '';
-
-      await loadAllDataFromSupabase();
-    }
-
-    async function deleteUser(id) {
-      if (!confirm("هل أنت تأكد من حذف هذا المستخدم؟")) return;
-
-      const { error } = await client.from('users').delete().eq('id', id);
-      if (error) return alert("خطأ في الحذف: " + error.message);
-
-      await loadAllDataFromSupabase();
-    }
-
-    function generateNextInvoiceId() {
-      const nextNum = 1001 + salesLog.length;
-      document.getElementById('inv-id').value = `#INV-${nextNum}`;
-    }
-
-    async function addMotorcycle() {
-      const name = document.getElementById('m-name').value.trim();
-      const cost = parseFloat(document.getElementById('m-cost').value) || 0;
-      const price = parseFloat(document.getElementById('m-price').value);
-      const qty = parseInt(document.getElementById('m-qty').value);
-
-      if(!name || !price || !qty) return alert("يرجى ملء كافة البيانات الرئيسية للموتوسيكل");
-
-      const newItem = { name, cost, price, qty, category: "موتوسيكل" };
-      const { data, error } = await client.from('inventory').insert([newItem]).select();
-
-      if (error) return alert("خطأ في الحفظ: " + error.message);
-
-      document.getElementById('m-name').value = '';
-      document.getElementById('m-cost').value = '';
-      document.getElementById('m-price').value = '';
-      document.getElementById('m-qty').value = '';
-      
-      alert("تم إضافة الموتوسيكل بنجاح!");
-      await loadAllDataFromSupabase();
-    }
-
-    async function addPart() {
-      const name = document.getElementById('p-name').value.trim();
-      const cost = parseFloat(document.getElementById('p-cost').value) || 0;
-      const price = parseFloat(document.getElementById('p-price').value);
-      const qty = parseInt(document.getElementById('p-qty').value);
-
-      if(!name || !price || !qty) return alert("يرجى ملء كافة حقول القطعة");
-
-      const newItem = { name, cost, price, qty, category: "قطع غيار" };
-      const { data, error } = await client.from('inventory').insert([newItem]).select();
-
-      if (error) return alert("خطأ في الحفظ: " + error.message);
-
-      document.getElementById('p-name').value = '';
-      document.getElementById('p-cost').value = '';
-      document.getElementById('p-price').value = '';
-      document.getElementById('p-qty').value = '';
-      
-      alert("تم إضافة الصنف بنجاح!");
-      await loadAllDataFromSupabase();
-    }
-
-    async function addExpense() {
-      const category = document.getElementById('exp-category').value;
-      const amount = parseFloat(document.getElementById('exp-amount').value);
-      const note = document.getElementById('exp-note').value.trim();
-
-      if(!amount || amount <= 0) return alert("يرجى إدخال مبلغ صحيح للمصروف");
-
-      const now = new Date();
-      const timeStr = now.toLocaleString('ar-EG');
-
-      const { error: expErr } = await client.from('expenses').insert([{
-        category, amount, note, time: timeStr
-      }]);
-
-      if (expErr) return alert("خطأ أثناء إضافة المصروف: " + expErr.message);
-
-      await client.from('cash_transactions').insert([{
-        desc_text: `مصروفات [${category}]: ${note}`,
-        type: 'out',
-        amount: amount,
-        time: now.toLocaleTimeString('ar-EG')
-      }]);
-
-      document.getElementById('exp-amount').value = '';
-      document.getElementById('exp-note').value = '';
-
-      alert("تم تسجيل المصروف بنجاح!");
-      await loadAllDataFromSupabase();
-    }
-
-    function onInvoiceItemSearch() {
-      const val = document.getElementById('inv-search').value.trim();
-      const matchedItem = inventory.find(i => (`[${i.category}] ${i.name}`) === val || i.name === val);
-
-      const specBox = document.getElementById('bike-spec-fields');
-
-      if (matchedItem) {
-        selectedItemId = matchedItem.id;
-        document.getElementById('inv-unit-price').value = matchedItem.price;
-
-        if(matchedItem.category === "موتوسيكل") {
-          specBox.classList.remove('hidden');
-        } else {
-          specBox.classList.add('hidden');
-        }
-      } else {
-        selectedItemId = null;
-        document.getElementById('inv-unit-price').value = '';
-        specBox.classList.add('hidden');
-      }
-    }
-
-    function addItemToInvoice() {
-      const qty = parseInt(document.getElementById('inv-qty').value);
-
-      if(!selectedItemId) return alert("يرجى اختيار صنف صحيح من القائمة");
-      if(!qty || qty <= 0) return alert("أدخل كمية صحيحة");
-
-      const item = inventory.find(i => i.id == selectedItemId);
-
-      if(item.qty < qty) {
-        return alert(`الكمية المتاحة بالمخزون (${item.qty}) غير كافية!`);
-      }
-
-      let chassis = "";
-      let engine = "";
-
-      if(item.category === "موتوسيكل") {
-        chassis = document.getElementById('inv-chassis-no').value.trim();
-        engine = document.getElementById('inv-engine-no').value.trim();
-
-        if(!chassis || !engine) {
-          return alert("يرجى إدخال رقم الشاسية ورقم الموتور");
-        }
-      }
-
-      currentInvoiceCart.push({
-        itemId: item.id,
-        name: item.name,
-        category: item.category,
-        costPrice: item.cost || 0,
-        unitPrice: item.price,
-        chassis: chassis,
-        engine: engine,
-        qty: qty,
-        total: item.price * qty,
-        totalCost: (item.cost || 0) * qty
-      });
-
-      document.getElementById('inv-search').value = '';
-      document.getElementById('inv-unit-price').value = '';
-      document.getElementById('inv-qty').value = '1';
-      document.getElementById('inv-chassis-no').value = '';
-      document.getElementById('inv-engine-no').value = '';
-      document.getElementById('bike-spec-fields').classList.add('hidden');
-      selectedItemId = null;
-
-      renderInvoiceCart();
-    }
-
-    function removeItemFromInvoice(index) {
-      currentInvoiceCart.splice(index, 1);
-      renderInvoiceCart();
-    }
-
-    function renderInvoiceCart() {
-      const tbody = document.getElementById('invoice-items-table');
-      tbody.innerHTML = '';
-      let grandTotal = 0;
-
-      currentInvoiceCart.forEach((item, index) => {
-        grandTotal += item.total;
-
-        let detailsHtml = `<b>${item.name}</b>`;
-        if(item.category === "موتوسيكل") {
-          detailsHtml += `<br><small style="color:#555;">شاسية: <b>${item.chassis}</b> | موتور: <b>${item.engine}</b></small>`;
-        }
-
-        tbody.innerHTML += `<tr>
-          <td style="text-align:right;">${detailsHtml}</td>
-          <td>${item.unitPrice.toLocaleString()} ج.م</td>
-          <td>${item.qty}</td>
-          <td>${item.total.toLocaleString()} ج.م</td>
-          <td class="no-print"><button class="delete-btn" onclick="removeItemFromInvoice(${index})">حذف ❌</button></td>
-        </tr>`;
-      });
-
-      document.getElementById('inv-grand-total').innerText = grandTotal.toLocaleString();
-    }
-
-    async function submitInvoice(shouldPrint) {
-      const invId = document.getElementById('inv-id').value;
-      const clientName = document.getElementById('inv-client-name').value.trim();
-      const clientPhone = document.getElementById('inv-client-phone').value.trim();
-
-      if(!clientName) return alert("يرجى كتابة اسم العميل");
-      if(currentInvoiceCart.length === 0) return alert("يرجى إضافة صنف واحد على الأقل للفاتورة");
-
-      let grandTotal = 0;
-      let totalCogs = 0;
-
-      for (let cartItem of currentInvoiceCart) {
-        const item = inventory.find(i => i.id == cartItem.itemId);
-        if(item) {
-          const newQty = item.qty - cartItem.qty;
-          await client.from('inventory').update({ qty: newQty }).eq('id', item.id);
-        }
-        grandTotal += cartItem.total;
-        totalCogs += cartItem.totalCost;
-      }
-
-      const now = new Date();
-      const timeString = now.toLocaleString('ar-EG');
-
-      await client.from('sales').insert([{
-        inv_id: invId,
-        client_name: clientName,
-        client_phone: clientPhone,
-        items_count: currentInvoiceCart.length,
-        grand_total: grandTotal,
-        total_cogs: totalCogs,
-        time: timeString
-      }]);
-
-      await client.from('cash_transactions').insert([{
-        desc_text: `فاتورة رقم ${invId} بواسطة (${currentUser.name}) للعميل: ${clientName}`,
-        type: 'in',
-        amount: grandTotal,
-        time: now.toLocaleTimeString('ar-EG')
-      }]);
-
-      if(shouldPrint) {
-        window.print();
-      } else {
-        alert(`تم حفظ الفاتورة بنجاح! \nرقم الفاتورة: ${invId}`);
-      }
-
-      document.getElementById('inv-client-name').value = '';
-      document.getElementById('inv-client-phone').value = '';
-      currentInvoiceCart = [];
-      renderInvoiceCart();
-
-      await loadAllDataFromSupabase();
-    }
-
-    async function addManualCash() {
-      const desc = document.getElementById('cash-desc').value.trim();
-      const type = document.getElementById('cash-type').value;
-      const amount = parseFloat(document.getElementById('cash-amount').value);
-
-      if(!desc || !amount) return alert("يرجى إدخال البيان والمبلغ");
-
-      await client.from('cash_transactions').insert([{
-        desc_text: `${desc} (بواسطة: ${currentUser.name})`,
-        type: type,
-        amount: amount,
-        time: new Date().toLocaleTimeString('ar-EG')
-      }]);
-
-      document.getElementById('cash-desc').value = '';
-      document.getElementById('cash-amount').value = '';
-
-      await loadAllDataFromSupabase();
-    }
-
-    function renderAll() {
-      renderShowroom();
-      renderParts();
-      renderDatalistOptions();
-      renderExpenses();
-      renderSalesLog();
-      renderCashFlow();
-      renderMonthlySummary();
-      renderUsersList();
-    }
-
-    function renderUsersList() {
-      const tbody = document.getElementById('users-list');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-      usersList.forEach(u => {
-        tbody.innerHTML += `<tr>
-          <td><b>${u.name}</b></td>
-          <td>${u.username}</td>
-          <td>${u.role === 'admin' ? 'مدير كامل الصلاحيات' : 'كاشير مبيعات'}</td>
-          <td><button class="delete-btn" onclick="deleteUser('${u.id}')">حذف</button></td>
-        </tr>`;
-      });
-    }
-
-    function renderShowroom() {
-      const tbody = document.getElementById('motorcycles-list');
-      tbody.innerHTML = '';
-      inventory.filter(i => i.category === "موتوسيكل").forEach(m => {
-        tbody.innerHTML += `<tr>
-          <td>${m.name}</td>
-          <td>${(m.cost || 0).toLocaleString()} ج.م</td>
-          <td>${m.price.toLocaleString()} ج.م</td>
-          <td><b>${m.qty}</b></td>
-        </tr>`;
-      });
-    }
-
-    function renderParts() {
-      const tbody = document.getElementById('parts-list');
-      tbody.innerHTML = '';
-      inventory.filter(i => i.category === "قطع غيار").forEach(p => {
-        tbody.innerHTML += `<tr>
-          <td>${p.name}</td>
-          <td>${(p.cost || 0).toLocaleString()} ج.م</td>
-          <td>${p.price.toLocaleString()} ج.م</td>
-          <td><b>${p.qty}</b></td>
-        </tr>`;
-      });
-    }
-
-    function renderDatalistOptions() {
-      const datalist = document.getElementById('items-datalist');
-      datalist.innerHTML = '';
-
-      inventory.forEach(item => {
-        if(item.qty > 0) {
-          datalist.innerHTML += `<option value="[${item.category}] ${item.name}">المتاح: ${item.qty} | السعر: ${item.price} ج.م</option>`;
-        }
-      });
-    }
-
-    function renderExpenses() {
-      const tbody = document.getElementById('expenses-list');
-      tbody.innerHTML = '';
-      expensesLog.forEach(e => {
-        tbody.innerHTML += `<tr>
-          <td><b>${e.category}</b></td>
-          <td style="color:#dc3545; font-weight:bold;">${e.amount.toLocaleString()} ج.م</td>
-          <td>${e.note || '-'}</td>
-          <td>${e.time}</td>
-        </tr>`;
-      });
-    }
-
-    function renderSalesLog() {
-      const tbody = document.getElementById('sales-list');
-      tbody.innerHTML = '';
-      salesLog.forEach(s => {
-        tbody.innerHTML += `<tr>
-          <td><b>${s.inv_id}</b></td>
-          <td>${s.client_name}</td>
-          <td>${s.client_phone || 'غير مدخل'}</td>
-          <td>${s.items_count} صنف</td>
-          <td><b>${s.grand_total.toLocaleString()} ج.م</b></td>
-          <td>${s.time}</td>
-        </tr>`;
-      });
-    }
-
-    function renderCashFlow() {
-      const tbody = document.getElementById('cash-list');
-      tbody.innerHTML = '';
-      let totalIn = 0;
-      let totalOut = 0;
-
-      const selectedDate = document.getElementById('cash-date-picker').value;
-
-      cashTransactions.forEach(t => {
-        const transDate = t.created_at ? t.created_at.slice(0, 10) : '';
-
-        if (!selectedDate || transDate === selectedDate) {
-          if(t.type === 'in') totalIn += t.amount;
-          else totalOut += t.amount;
-
-          const typeLabel = t.type === 'in' ? '<span class="cash-in">وارد (+)</span>' : '<span class="cash-out">منصرف (-)</span>';
-
-          tbody.innerHTML += `<tr>
-            <td>${t.desc_text}</td>
-            <td>${typeLabel}</td>
-            <td>${t.amount.toLocaleString()} ج.م</td>
-            <td>${transDate || '-'}</td>
-            <td>${t.time}</td>
-          </tr>`;
-        }
-      });
-
-      document.getElementById('total-in').innerText = totalIn.toLocaleString();
-      document.getElementById('total-out').innerText = totalOut.toLocaleString();
-      document.getElementById('net-balance').innerText = (totalIn - totalOut).toLocaleString();
-    }
-
-    function renderMonthlySummary() {
-      const selectedMonth = document.getElementById('month-picker').value;
-      if (!selectedMonth) return;
-
-      let monthSales = 0;
-      let monthCogs = 0;
-      salesLog.forEach(s => {
-        if (s.created_at && s.created_at.startsWith(selectedMonth)) {
-          monthSales += s.grand_total;
-          monthCogs += (s.total_cogs || 0);
-        }
-      });
-
-      let monthExpenses = 0;
-      expensesLog.forEach(e => {
-        if (e.created_at && e.created_at.startsWith(selectedMonth)) {
-          monthExpenses += e.amount;
-        }
-      });
-
-      const netProfit = monthSales - (monthCogs + monthExpenses);
-
-      document.getElementById('m-sales-total').innerText = monthSales.toLocaleString();
-      document.getElementById('m-cogs-total').innerText = monthCogs.toLocaleString();
-      document.getElementById('m-expenses-total').innerText = monthExpenses.toLocaleString();
-      
-      const profitEl = document.getElementById('m-net-profit');
-      profitEl.innerText = netProfit.toLocaleString();
-      profitEl.style.color = netProfit >= 0 ? '#28a745' : '#dc3545';
-    }
-  </script>
+    <script>
+        // إعدادات الربط مع مشروع Supabase الجديد
+        const supabaseUrl = 'https://byrkgnqkovmsepbpknyc.supabase.co';
+        const supabaseKey = 'sb_publishable_ed0x-T4S4lcKREn6nYVATA_dua5w';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMessage.innerText = '';
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('users')
+                    .select('*')
+                    .eq('email', email)
+                    .eq('password', password)
+                    .maybeSingle();
+
+                if (error) {
+                    console.error('Supabase Error:', error);
+                    errorMessage.innerText = 'حدث خطأ في الاتصال بقاعدة البيانات';
+                    return;
+                }
+
+                if (!data) {
+                    errorMessage.innerText = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+                    return;
+                }
+
+                // عند النجاح
+                alert('تم تسجيل الدخول بنجاح!');
+                // window.location.href = 'dashboard.html'; // يمكنك تفعيل هذا السطر لتحويل المستخدم
+
+            } catch (err) {
+                console.error(err);
+                errorMessage.innerText = 'تعذر الاتصال بالخادم';
+            }
+        });
+    </script>
 </body>
 </html>
