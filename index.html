@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>شــركــه نـــادي صبــري للمــوتسيكــلات</title>
+  <title>نظام إدارة المعرض والحسابات</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; }
@@ -193,12 +193,13 @@
 
         <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
 
-        <!-- اختيار الصنف وإضافته للفاتورة -->
-        <label style="display:block; text-align:right; font-weight:bold;">اختر صنف لإضافته للفاتورة:</label>
+        <!-- بحث لاختيار الصنف وإضافته للفاتورة -->
+        <label style="display:block; text-align:right; font-weight:bold;">ابحث واختر الصنف لإضافته للفاتورة:</label>
         <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:10px; align-items:center;">
-          <select id="inv-item-select" onchange="onInvoiceItemChange()">
-            <option value="">اختر الصنف...</option>
-          </select>
+          <div>
+            <input type="text" id="inv-search" list="items-datalist" placeholder="🔍 اكتب اسم الصنف للبحث..." oninput="onInvoiceItemSearch()">
+            <datalist id="items-datalist"></datalist>
+          </div>
           <input type="number" id="inv-unit-price" readonly placeholder="السعر" style="background:#f0f0f0;">
           <input type="number" id="inv-qty" value="1" min="1" placeholder="الكمية">
           <button onclick="addItemToInvoice()" style="background:#007bff; width:auto; margin:8px 0; padding:12px 20px;">+ إضافة للصنف</button>
@@ -297,8 +298,8 @@
     const SUPABASE_KEY = "sb_publishable_e20NbhSf0QwDoQz54EdGcw_n0UuY3Y6";
     var client;
 
-    // متغيّر التسلسل الفريد لإنشاء رقم الفاتورة غير المكرر
     var invoiceCounter = 1001;
+    var selectedItemId = null;
 
     var inventory = [
       { id: 1, name: "موتوسيكل دايون 4", price: 35000, qty: 5, category: "موتوسيكل" },
@@ -387,35 +388,32 @@
       renderAll();
     }
 
-    // --- 2. إدارة الفاتورة والأصناف المتاحة ---
-    function onInvoiceItemChange() {
-      const select = document.getElementById('inv-item-select');
-      const selectedId = select.value;
-      if(!selectedId) {
+    // --- 2. البحث عن الأصناف وإدارة الفاتورة ---
+    function onInvoiceItemSearch() {
+      const val = document.getElementById('inv-search').value.trim();
+      const matchedItem = inventory.find(i => (`[${i.category}] ${i.name}`) === val || i.name === val);
+
+      if (matchedItem) {
+        selectedItemId = matchedItem.id;
+        document.getElementById('inv-unit-price').value = matchedItem.price;
+      } else {
+        selectedItemId = null;
         document.getElementById('inv-unit-price').value = '';
-        return;
-      }
-      const item = inventory.find(i => i.id == selectedId);
-      if(item) {
-        document.getElementById('inv-unit-price').value = item.price;
       }
     }
 
     function addItemToInvoice() {
-      const select = document.getElementById('inv-item-select');
-      const itemId = select.value;
       const qty = parseInt(document.getElementById('inv-qty').value);
 
-      if(!itemId) return alert("اختر صنفاً أولاً");
+      if(!selectedItemId) return alert("يرجى اختيار صنف صحيح من قائمة الاقتراحات");
       if(!qty || qty <= 0) return alert("أدخل كمية صحيحة");
 
-      const item = inventory.find(i => i.id == itemId);
+      const item = inventory.find(i => i.id == selectedItemId);
 
       if(item.qty < qty) {
-        return alert(`الكمية المتاحة بالجراب (${item.qty}) غير كافية!`);
+        return alert(`الكمية المتاحة بالمخزون (${item.qty}) غير كافية!`);
       }
 
-      // إضافة الصنف لسلة الفاتورة الحالية
       currentInvoiceCart.push({
         itemId: item.id,
         name: item.name,
@@ -424,10 +422,11 @@
         total: item.price * qty
       });
 
-      // إرجاع الخيارات لوضعها الافتراضي
-      select.value = '';
+      // إرجاع حقول الإدخال إلى الوضع الافتراضي
+      document.getElementById('inv-search').value = '';
       document.getElementById('inv-unit-price').value = '';
       document.getElementById('inv-qty').value = '1';
+      selectedItemId = null;
 
       renderInvoiceCart();
     }
@@ -466,7 +465,6 @@
 
       let grandTotal = 0;
       
-      // 1. خصم الكميات المحددة من المخزون لكل صنف
       currentInvoiceCart.forEach(cartItem => {
         const item = inventory.find(i => i.id == cartItem.itemId);
         if(item) {
@@ -477,7 +475,6 @@
 
       const timeString = new Date().toLocaleString('ar-EG');
 
-      // 2. حفظ الفاتورة في سجل المبيعات برقمها الفريد
       salesLog.push({
         invId,
         clientName,
@@ -487,7 +484,6 @@
         time: timeString
       });
 
-      // 3. إضافة المبلغ تلقائياً في حركة الخزينة اليومية كـ (وارد)
       cashTransactions.push({
         desc: `فاتورة رقم ${invId} للعميل: ${clientName}`,
         type: 'in',
@@ -497,7 +493,6 @@
 
       alert(`تمت الفاتورة بنجاح! \nرقم الفاتورة: ${invId} \nإجمالي المبلغ: ${grandTotal.toLocaleString()} ج.م`);
 
-      // تجهيز رقم الفاتورة التالي وتصفير الحقول
       invoiceCounter++;
       generateNextInvoiceId();
       document.getElementById('inv-client-name').value = '';
@@ -531,7 +526,7 @@
     function renderAll() {
       renderShowroom();
       renderParts();
-      renderInvoiceDropdown();
+      renderDatalistOptions();
       renderSalesLog();
       renderCashFlow();
     }
@@ -560,13 +555,13 @@
       });
     }
 
-    function renderInvoiceDropdown() {
-      const select = document.getElementById('inv-item-select');
-      select.innerHTML = '<option value="">اختر الصنف...</option>';
+    function renderDatalistOptions() {
+      const datalist = document.getElementById('items-datalist');
+      datalist.innerHTML = '';
 
       inventory.forEach(item => {
         if(item.qty > 0) {
-          select.innerHTML += `<option value="${item.id}">[${item.category}] ${item.name} - (المتاح: ${item.qty})</option>`;
+          datalist.innerHTML += `<option value="[${item.category}] ${item.name}">المتاح: ${item.qty} | السعر: ${item.price} ج.م</option>`;
         }
       });
     }
