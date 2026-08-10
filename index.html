@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>نظام إدارة المعرض والحسابات</title>
+  <title>معرض نادي صبري للموتسيكلات</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; }
@@ -89,7 +89,7 @@
 
   <!-- تسجيل الدخول -->
   <div id="login-box">
-    <h2>تسجيل الدخول للنظام 🔐</h2>
+    <h2>معرض نادي صبري للموتسيكلات 🔐</h2>
     <input type="email" id="email" placeholder="البريد الإلكتروني">
     <input type="password" id="password" placeholder="كلمة المرور">
     <button type="button" onclick="login()">دخول</button>
@@ -99,7 +99,7 @@
   <!-- التطبيق الرئيسي -->
   <div id="app" class="hidden">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;" class="no-print">
-      <h2 style="margin:0;">نظام الحسابات والمعرض 🛵</h2>
+      <h2 style="margin:0;">معرض نادي صبري للموتسيكلات 🛵</h2>
       <button onclick="logout()" style="width:auto; background:#dc3545; padding: 8px 20px;">تسجيل خروج 🚪</button>
     </div>
 
@@ -180,7 +180,7 @@
     <!-- 3. فاتورة جديدة -->
     <div id="new-invoice-tab" class="page-content hidden">
       <div class="card" id="print-area">
-        <h2 style="margin:0 0 15px 0;">معرض ومحل قطع غيار الموتوسيكلات 🛵</h2>
+        <h2 style="margin:0 0 15px 0;">معرض نادي صبري للموتسيكلات 🛵</h2>
         <h3>إصدار فاتورة بيع جديدة 🧾</h3>
         
         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:15px; text-align:right;">
@@ -640,7 +640,7 @@
     }
 
     function renderMonthlySummary() {
-      const selectedMonth = document.getElementById('month-picker').value; // YYYY-MM
+      const selectedMonth = document.getElementById('month-picker').value;
       if (!selectedMonth) return;
 
       let monthSales = 0;
