@@ -47,7 +47,7 @@
     .nav-card .icon { font-size: 26px; margin-bottom: 6px; }
     .nav-card .title { font-weight: bold; font-size: 14px; }
 
-    .card { background: #fff; border-radius: 10px; padding: 25px; max-width: 800px; margin: 0 auto 20px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .card { background: #fff; border-radius: 10px; padding: 25px; max-width: 850px; margin: 0 auto 20px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; border-radius: 8px; overflow: hidden; }
     th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
     th { background: #007bff; color: white; }
@@ -62,9 +62,19 @@
       padding: 15px;
       border-radius: 8px;
       margin: 15px 0;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
       color: #234e52;
+    }
+
+    .delete-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      width: auto;
     }
   </style>
 </head>
@@ -165,39 +175,69 @@
       <div class="card">
         <h3>إصدار فاتورة بيع جديدة 🧾</h3>
         
-        <label style="display:block; text-align:right; font-weight:bold;">اختر الصنف من المخزون:</label>
-        <select id="inv-item-select" onchange="onInvoiceItemChange()">
-          <option value="">اختر الموتوسيكل أو قطعة الغيار...</option>
-        </select>
-
-        <div style="display:flex; gap:10px; margin-top:10px;">
-          <div style="flex:1;">
-            <label style="display:block; text-align:right; font-size:13px;">سعر القطعة (ج.م):</label>
-            <input type="number" id="inv-unit-price" readonly placeholder="السعر" style="background:#f0f0f0;">
+        <!-- بيانات الفاتورة والعميل -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:15px; text-align:right;">
+          <div>
+            <label style="font-weight:bold; font-size:13px;">رقم الفاتورة (آلي):</label>
+            <input type="text" id="inv-id" readonly style="background:#f0f0f0; font-weight:bold;">
           </div>
-          <div style="flex:1;">
-            <label style="display:block; text-align:right; font-size:13px;">الكمية المطلوبة:</label>
-            <input type="number" id="inv-qty" value="1" min="1" oninput="calculateInvoiceTotal()">
+          <div>
+            <label style="font-weight:bold; font-size:13px;">اسم العميل:</label>
+            <input type="text" id="inv-client-name" placeholder="اسم العميل">
+          </div>
+          <div>
+            <label style="font-weight:bold; font-size:13px;">رقم الهاتف:</label>
+            <input type="text" id="inv-client-phone" placeholder="رقم الهاتف">
           </div>
         </div>
 
+        <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+
+        <!-- اختيار الصنف وإضافته للفاتورة -->
+        <label style="display:block; text-align:right; font-weight:bold;">اختر صنف لإضافته للفاتورة:</label>
+        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:10px; align-items:center;">
+          <select id="inv-item-select" onchange="onInvoiceItemChange()">
+            <option value="">اختر الصنف...</option>
+          </select>
+          <input type="number" id="inv-unit-price" readonly placeholder="السعر" style="background:#f0f0f0;">
+          <input type="number" id="inv-qty" value="1" min="1" placeholder="الكمية">
+          <button onclick="addItemToInvoice()" style="background:#007bff; width:auto; margin:8px 0; padding:12px 20px;">+ إضافة للصنف</button>
+        </div>
+
+        <!-- جدول الأصناف المضافة بالفاتورة -->
+        <h4 style="margin-top:20px; text-align:right;">الأصناف المضافة للفاتورة:</h4>
+        <table>
+          <thead>
+            <tr>
+              <th>الصنف</th>
+              <th>سعر الوحدة</th>
+              <th>الكمية</th>
+              <th>الإجمالي</th>
+              <th>إزالة</th>
+            </tr>
+          </thead>
+          <tbody id="invoice-items-table"></tbody>
+        </table>
+
+        <!-- إجمالي الفاتورة -->
         <div class="invoice-total-box">
-          إجمالي الفاتورة: <span id="inv-total">0</span> ج.م
+          إجمالي الفاتورة الكلي: <span id="inv-grand-total">0</span> ج.م
         </div>
 
-        <button onclick="submitInvoice()" style="background:#28a745; font-size:18px; padding:15px;">تأكيد وإصدار الفاتورة ✔️</button>
+        <button onclick="submitInvoice()" style="background:#28a745; font-size:18px; padding:15px; margin-top:10px;">تأكيد وإصدار الفاتورة ✔️</button>
       </div>
     </div>
 
     <!-- 4. سجل المبيعات -->
     <div id="sales-log-tab" class="page-content hidden">
-      <h3>سجل المبيعات والعمليات 📑</h3>
+      <h3>سجل الفواتير والمبيعات 📑</h3>
       <table>
         <thead>
           <tr>
-            <th>اسم الصنف</th>
-            <th>النوع</th>
-            <th>الكمية المباعة</th>
+            <th>رقم الفاتورة</th>
+            <th>اسم العميل</th>
+            <th>رقم الهاتف</th>
+            <th>عدد الأصناف</th>
             <th>إجمالي الفاتورة</th>
             <th>التاريخ والوقت</th>
           </tr>
@@ -257,7 +297,9 @@
     const SUPABASE_KEY = "sb_publishable_e20NbhSf0QwDoQz54EdGcw_n0UuY3Y6";
     var client;
 
-    // البيانات المحلية المحاكاة للتبسيط والمزامنة الفورية
+    // متغيّر التسلسل الفريد لإنشاء رقم الفاتورة غير المكرر
+    var invoiceCounter = 1001;
+
     var inventory = [
       { id: 1, name: "موتوسيكل دايون 4", price: 35000, qty: 5, category: "موتوسيكل" },
       { id: 2, name: "موتوسيكل هوجان فلامنجو", price: 38000, qty: 3, category: "موتوسيكل" },
@@ -265,6 +307,7 @@
       { id: 4, name: "خوذة سباق", price: 800, qty: 10, category: "قطع غيار" }
     ];
 
+    var currentInvoiceCart = [];
     var salesLog = [];
     var cashTransactions = [];
 
@@ -273,8 +316,13 @@
         client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       }
       document.getElementById('month-picker').value = new Date().toISOString().slice(0, 7);
+      generateNextInvoiceId();
       renderAll();
     };
+
+    function generateNextInvoiceId() {
+      document.getElementById('inv-id').value = `#INV-${invoiceCounter}`;
+    }
 
     function switchPage(pageId, cardElement) {
       document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
@@ -339,75 +387,123 @@
       renderAll();
     }
 
-    // --- 2. إدارة الفاتورة ---
+    // --- 2. إدارة الفاتورة والأصناف المتاحة ---
     function onInvoiceItemChange() {
       const select = document.getElementById('inv-item-select');
       const selectedId = select.value;
-      
       if(!selectedId) {
         document.getElementById('inv-unit-price').value = '';
-        calculateInvoiceTotal();
         return;
       }
-
       const item = inventory.find(i => i.id == selectedId);
       if(item) {
         document.getElementById('inv-unit-price').value = item.price;
-        calculateInvoiceTotal();
       }
     }
 
-    function calculateInvoiceTotal() {
-      const price = parseFloat(document.getElementById('inv-unit-price').value) || 0;
-      const qty = parseInt(document.getElementById('inv-qty').value) || 0;
-      const total = price * qty;
-      document.getElementById('inv-total').innerText = total.toLocaleString();
-    }
-
-    function submitInvoice() {
+    function addItemToInvoice() {
       const select = document.getElementById('inv-item-select');
       const itemId = select.value;
       const qty = parseInt(document.getElementById('inv-qty').value);
 
-      if (!itemId) return alert("يرجى اختيار صنف من القائمة");
-      if (!qty || qty <= 0) return alert("يرجى تحديد كمية صحيحة");
+      if(!itemId) return alert("اختر صنفاً أولاً");
+      if(!qty || qty <= 0) return alert("أدخل كمية صحيحة");
 
       const item = inventory.find(i => i.id == itemId);
 
-      if (item.qty < qty) {
-        return alert(`الكمية المتاحة في المخزون (${item.qty}) غير كافية!`);
+      if(item.qty < qty) {
+        return alert(`الكمية المتاحة بالجراب (${item.qty}) غير كافية!`);
       }
 
-      const totalAmount = item.price * qty;
-      const timeString = new Date().toLocaleString('ar-EG');
-
-      // 1. تنقيص الكمية من المخزون تلقائياً
-      item.qty -= qty;
-
-      // 2. تسجيل الفاتورة في سجل المبيعات
-      salesLog.push({
+      // إضافة الصنف لسلة الفاتورة الحالية
+      currentInvoiceCart.push({
+        itemId: item.id,
         name: item.name,
-        category: item.category,
+        unitPrice: item.price,
         qty: qty,
-        total: totalAmount,
-        time: timeString
+        total: item.price * qty
       });
 
-      // 3. إضافة المبلغ تلقائياً في حركة الخزينة اليومية (وارد)
-      cashTransactions.push({
-        desc: `فاتورة بيع: ${item.name} (${qty})`,
-        type: 'in',
-        amount: totalAmount,
-        time: new Date().toLocaleTimeString('ar-EG')
-      });
-
-      alert(`تمت عملية البيع بنجاح! \nإجمالي الفاتورة: ${totalAmount} ج.م`);
-
-      // إعادة ضبط الفاتورة وتحديث كل الجداول
+      // إرجاع الخيارات لوضعها الافتراضي
       select.value = '';
       document.getElementById('inv-unit-price').value = '';
       document.getElementById('inv-qty').value = '1';
-      calculateInvoiceTotal();
+
+      renderInvoiceCart();
+    }
+
+    function removeItemFromInvoice(index) {
+      currentInvoiceCart.splice(index, 1);
+      renderInvoiceCart();
+    }
+
+    function renderInvoiceCart() {
+      const tbody = document.getElementById('invoice-items-table');
+      tbody.innerHTML = '';
+      let grandTotal = 0;
+
+      currentInvoiceCart.forEach((item, index) => {
+        grandTotal += item.total;
+        tbody.innerHTML += `<tr>
+          <td>${item.name}</td>
+          <td>${item.unitPrice.toLocaleString()} ج.م</td>
+          <td>${item.qty}</td>
+          <td>${item.total.toLocaleString()} ج.م</td>
+          <td><button class="delete-btn" onclick="removeItemFromInvoice(${index})">حذف ❌</button></td>
+        </tr>`;
+      });
+
+      document.getElementById('inv-grand-total').innerText = grandTotal.toLocaleString();
+    }
+
+    function submitInvoice() {
+      const invId = document.getElementById('inv-id').value;
+      const clientName = document.getElementById('inv-client-name').value.trim();
+      const clientPhone = document.getElementById('inv-client-phone').value.trim();
+
+      if(!clientName) return alert("يرجى كتابة اسم العميل");
+      if(currentInvoiceCart.length === 0) return alert("يرجى إضافة صنف واحد على الأقل للفاتورة");
+
+      let grandTotal = 0;
+      
+      // 1. خصم الكميات المحددة من المخزون لكل صنف
+      currentInvoiceCart.forEach(cartItem => {
+        const item = inventory.find(i => i.id == cartItem.itemId);
+        if(item) {
+          item.qty -= cartItem.qty;
+        }
+        grandTotal += cartItem.total;
+      });
+
+      const timeString = new Date().toLocaleString('ar-EG');
+
+      // 2. حفظ الفاتورة في سجل المبيعات برقمها الفريد
+      salesLog.push({
+        invId,
+        clientName,
+        clientPhone,
+        itemsCount: currentInvoiceCart.length,
+        grandTotal,
+        time: timeString
+      });
+
+      // 3. إضافة المبلغ تلقائياً في حركة الخزينة اليومية كـ (وارد)
+      cashTransactions.push({
+        desc: `فاتورة رقم ${invId} للعميل: ${clientName}`,
+        type: 'in',
+        amount: grandTotal,
+        time: new Date().toLocaleTimeString('ar-EG')
+      });
+
+      alert(`تمت الفاتورة بنجاح! \nرقم الفاتورة: ${invId} \nإجمالي المبلغ: ${grandTotal.toLocaleString()} ج.م`);
+
+      // تجهيز رقم الفاتورة التالي وتصفير الحقول
+      invoiceCounter++;
+      generateNextInvoiceId();
+      document.getElementById('inv-client-name').value = '';
+      document.getElementById('inv-client-phone').value = '';
+      currentInvoiceCart = [];
+      renderInvoiceCart();
 
       renderAll();
     }
@@ -466,7 +562,7 @@
 
     function renderInvoiceDropdown() {
       const select = document.getElementById('inv-item-select');
-      select.innerHTML = '<option value="">اختر الموتوسيكل أو قطعة الغيار...</option>';
+      select.innerHTML = '<option value="">اختر الصنف...</option>';
 
       inventory.forEach(item => {
         if(item.qty > 0) {
@@ -480,10 +576,11 @@
       tbody.innerHTML = '';
       salesLog.forEach(s => {
         tbody.innerHTML += `<tr>
-          <td>${s.name}</td>
-          <td>${s.category}</td>
-          <td>${s.qty}</td>
-          <td><b>${s.total.toLocaleString()} ج.م</b></td>
+          <td><b>${s.invId}</b></td>
+          <td>${s.clientName}</td>
+          <td>${s.clientPhone || 'غير مدخل'}</td>
+          <td>${s.itemsCount} صنف</td>
+          <td><b>${s.grandTotal.toLocaleString()} ج.م</b></td>
           <td>${s.time}</td>
         </tr>`;
       });
