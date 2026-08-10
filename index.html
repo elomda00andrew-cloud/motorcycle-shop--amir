@@ -77,25 +77,11 @@
       width: auto;
     }
 
-    /* --- تنسيقات خافية للطباعة --- */
     @media print {
-      body * {
-        visibility: hidden;
-      }
-      #print-area, #print-area * {
-        visibility: visible;
-      }
-      #print-area {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        padding: 20px;
-        background: white;
-      }
-      .no-print {
-        display: none !important;
-      }
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; }
+      #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; }
+      .no-print { display: none !important; }
     }
   </style>
 </head>
@@ -197,7 +183,6 @@
         <h2 style="margin:0 0 15px 0;">معرض ومحل قطع غيار الموتوسيكلات 🛵</h2>
         <h3>إصدار فاتورة بيع جديدة 🧾</h3>
         
-        <!-- بيانات الفاتورة والعميل -->
         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:15px; text-align:right;">
           <div>
             <label style="font-weight:bold; font-size:13px;">رقم الفاتورة (آلي):</label>
@@ -215,7 +200,6 @@
 
         <hr style="border:0; border-top:1px solid #eee; margin:15px 0;" class="no-print">
 
-        <!-- بحث لاختيار الصنف وإضافته للفاتورة -->
         <div class="no-print">
           <label style="display:block; text-align:right; font-weight:bold;">🔍 ابحث باسم الصنف لإضافته للفاتورة:</label>
           <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:10px; align-items:center;">
@@ -229,7 +213,6 @@
           </div>
         </div>
 
-        <!-- جدول الأصناف المضافة بالفاتورة -->
         <h4 style="margin-top:20px; text-align:right;">الأصناف المضافة للفاتورة:</h4>
         <table>
           <thead>
@@ -244,7 +227,6 @@
           <tbody id="invoice-items-table"></tbody>
         </table>
 
-        <!-- إجمالي الفاتورة -->
         <div class="invoice-total-box">
           إجمالي الفاتورة الكلي: <span id="inv-grand-total">0</span> ج.م
         </div>
@@ -314,7 +296,12 @@
     <div id="monthly-summary-tab" class="page-content hidden">
       <div class="card">
         <h3>ملخص المبيعات والخزينة الشهري 📊</h3>
-        <input type="month" id="month-picker" style="max-width:250px; margin:auto;">
+        <input type="month" id="month-picker" style="max-width:250px; margin:auto;" onchange="renderMonthlySummary()">
+        
+        <div class="cash-summary" style="margin-top:20px;">
+          <div>مبيعات الشهر: <span id="m-sales-total" class="cash-in">0</span> ج.م</div>
+          <div>إجمالي الخزينة الصافي: <span id="m-net-total">0</span> ج.م</div>
+        </div>
       </div>
     </div>
 
@@ -325,19 +312,20 @@
     const SUPABASE_KEY = "sb_publishable_e20NbhSf0QwDoQz54EdGcw_n0UuY3Y6";
     var client;
 
-    var invoiceCounter = 1001;
+    var invoiceCounter = parseInt(localStorage.getItem('invoiceCounter')) || 1001;
     var selectedItemId = null;
 
-    var inventory = [
+    var defaultInventory = [
       { id: 1, name: "موتوسيكل دايون 4", price: 35000, qty: 5, category: "موتوسيكل" },
       { id: 2, name: "موتوسيكل هوجان فلامنجو", price: 38000, qty: 3, category: "موتوسيكل" },
       { id: 3, name: "زيت موتور توتال", price: 250, qty: 20, category: "قطع غيار" },
       { id: 4, name: "خوذة سباق", price: 800, qty: 10, category: "قطع غيار" }
     ];
 
+    var inventory = JSON.parse(localStorage.getItem('inventory')) || defaultInventory;
     var currentInvoiceCart = [];
-    var salesLog = [];
-    var cashTransactions = [];
+    var salesLog = JSON.parse(localStorage.getItem('salesLog')) || [];
+    var cashTransactions = JSON.parse(localStorage.getItem('cashTransactions')) || [];
 
     window.onload = function() {
       if (typeof supabase !== 'undefined') {
@@ -347,6 +335,13 @@
       generateNextInvoiceId();
       renderAll();
     };
+
+    function saveData() {
+      localStorage.setItem('inventory', JSON.stringify(inventory));
+      localStorage.setItem('salesLog', JSON.stringify(salesLog));
+      localStorage.setItem('cashTransactions', JSON.stringify(cashTransactions));
+      localStorage.setItem('invoiceCounter', invoiceCounter);
+    }
 
     function generateNextInvoiceId() {
       document.getElementById('inv-id').value = `#INV-${invoiceCounter}`;
@@ -394,6 +389,7 @@
       document.getElementById('m-price').value = '';
       document.getElementById('m-qty').value = '';
       
+      saveData();
       alert("تم إضافة الموتوسيكل للمخزون بنجاح!");
       renderAll();
     }
@@ -410,6 +406,7 @@
       document.getElementById('p-price').value = '';
       document.getElementById('p-qty').value = '';
       
+      saveData();
       alert("تم إضافة الصنف لقطع الغيار بنجاح!");
       renderAll();
     }
@@ -497,7 +494,9 @@
         grandTotal += cartItem.total;
       });
 
-      const timeString = new Date().toLocaleString('ar-EG');
+      const now = new Date();
+      const timeString = now.toLocaleString('ar-EG');
+      const isoDate = now.toISOString();
 
       salesLog.push({
         invId,
@@ -505,24 +504,27 @@
         clientPhone,
         itemsCount: currentInvoiceCart.length,
         grandTotal,
-        time: timeString
+        time: timeString,
+        date: isoDate
       });
 
       cashTransactions.push({
         desc: `فاتورة رقم ${invId} للعميل: ${clientName}`,
         type: 'in',
         amount: grandTotal,
-        time: new Date().toLocaleTimeString('ar-EG')
+        time: now.toLocaleTimeString('ar-EG'),
+        date: isoDate
       });
 
-      // إجراء الطباعة عند طلبها
+      invoiceCounter++;
+      saveData();
+
       if(shouldPrint) {
         window.print();
       } else {
         alert(`تم حفظ الفاتورة بنجاح! \nرقم الفاتورة: ${invId}`);
       }
 
-      invoiceCounter++;
       generateNextInvoiceId();
       document.getElementById('inv-client-name').value = '';
       document.getElementById('inv-client-phone').value = '';
@@ -541,8 +543,11 @@
 
       cashTransactions.push({
         desc, type, amount,
-        time: new Date().toLocaleTimeString('ar-EG')
+        time: new Date().toLocaleTimeString('ar-EG'),
+        date: new Date().toISOString()
       });
+
+      saveData();
 
       document.getElementById('cash-desc').value = '';
       document.getElementById('cash-amount').value = '';
@@ -556,6 +561,7 @@
       renderDatalistOptions();
       renderSalesLog();
       renderCashFlow();
+      renderMonthlySummary();
     }
 
     function renderShowroom() {
@@ -631,6 +637,29 @@
       document.getElementById('total-in').innerText = totalIn.toLocaleString();
       document.getElementById('total-out').innerText = totalOut.toLocaleString();
       document.getElementById('net-balance').innerText = (totalIn - totalOut).toLocaleString();
+    }
+
+    function renderMonthlySummary() {
+      const selectedMonth = document.getElementById('month-picker').value; // YYYY-MM
+      if (!selectedMonth) return;
+
+      let monthSales = 0;
+      salesLog.forEach(s => {
+        if (s.date && s.date.startsWith(selectedMonth)) {
+          monthSales += s.grandTotal;
+        }
+      });
+
+      let netCash = 0;
+      cashTransactions.forEach(t => {
+        if (t.date && t.date.startsWith(selectedMonth)) {
+          if (t.type === 'in') netCash += t.amount;
+          else netCash -= t.amount;
+        }
+      });
+
+      document.getElementById('m-sales-total').innerText = monthSales.toLocaleString();
+      document.getElementById('m-net-total').innerText = netCash.toLocaleString();
     }
   </script>
 </body>
