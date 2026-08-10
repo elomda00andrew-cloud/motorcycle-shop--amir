@@ -169,7 +169,7 @@
       </div>
     </div>
 
-    <!-- 1. مخزون المعرض (الموتوسيكلات) -->
+    <!-- 1. مخزون المعرض -->
     <div id="showroom-tab" class="page-content">
       <div class="card">
         <h3>إضافة موتوسيكل جديد للمعرض 🏍️</h3>
@@ -196,7 +196,7 @@
       </table>
     </div>
 
-    <!-- 2. قطع الغيار والكماليات -->
+    <!-- 2. قطع الغيار -->
     <div id="parts-tab" class="page-content hidden">
       <div class="card">
         <h3>إضافة قطعة غيار / كماليات 🛠️</h3>
@@ -355,7 +355,7 @@
       </table>
     </div>
 
-    <!-- 6. حركة الخزينة اليومية المحدثة -->
+    <!-- 6. حركة الخزينة اليومية -->
     <div id="cash-flow-tab" class="page-content hidden">
       <div class="card">
         <h3>حركة الخزينة اليومية 💵</h3>
@@ -397,7 +397,7 @@
       </table>
     </div>
 
-    <!-- 7. ملخص صافي الأرباح والتقارير الشهري -->
+    <!-- 7. الأرباح والتقارير -->
     <div id="monthly-summary-tab" class="page-content hidden">
       <div class="card">
         <h3>تقرير صافي الأرباح المالي (Net Profit) 📊</h3>
@@ -422,21 +422,13 @@
     const SUPABASE_KEY = "sb_publishable_e20NbhSf0QwDoQz54EdGcw_n0UuY3Y6";
     var client;
 
-    var invoiceCounter = parseInt(localStorage.getItem('invoiceCounter')) || 1001;
     var selectedItemId = null;
-
-    var defaultInventory = [
-      { id: 1, name: "موتوسيكل دايون 4", cost: 30000, price: 35000, qty: 5, category: "موتوسيكل" },
-      { id: 2, name: "موتوسيكل هوجان فلامنجو", cost: 33000, price: 38000, qty: 3, category: "موتوسيكل" },
-      { id: 3, name: "زيت موتور توتال", cost: 180, price: 250, qty: 20, category: "قطع غيار" },
-      { id: 4, name: "خوذة سباق", cost: 550, price: 800, qty: 10, category: "قطع غيار" }
-    ];
-
-    var inventory = JSON.parse(localStorage.getItem('inventory')) || defaultInventory;
     var currentInvoiceCart = [];
-    var salesLog = JSON.parse(localStorage.getItem('salesLog')) || [];
-    var expensesLog = JSON.parse(localStorage.getItem('expensesLog')) || [];
-    var cashTransactions = JSON.parse(localStorage.getItem('cashTransactions')) || [];
+
+    var inventory = [];
+    var salesLog = [];
+    var expensesLog = [];
+    var cashTransactions = [];
 
     window.onload = function() {
       if (typeof supabase !== 'undefined') {
@@ -444,21 +436,7 @@
       }
       document.getElementById('month-picker').value = new Date().toISOString().slice(0, 7);
       document.getElementById('cash-date-picker').value = new Date().toISOString().slice(0, 10);
-      generateNextInvoiceId();
-      renderAll();
     };
-
-    function saveData() {
-      localStorage.setItem('inventory', JSON.stringify(inventory));
-      localStorage.setItem('salesLog', JSON.stringify(salesLog));
-      localStorage.setItem('expensesLog', JSON.stringify(expensesLog));
-      localStorage.setItem('cashTransactions', JSON.stringify(cashTransactions));
-      localStorage.setItem('invoiceCounter', invoiceCounter);
-    }
-
-    function generateNextInvoiceId() {
-      document.getElementById('inv-id').value = `#INV-${invoiceCounter}`;
-    }
 
     function switchPage(pageId, cardElement) {
       document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
@@ -481,7 +459,7 @@
       } else {
         document.getElementById('login-box').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
-        renderAll();
+        await loadAllDataFromSupabase();
       }
     }
 
@@ -490,7 +468,33 @@
       location.reload();
     }
 
-    function addMotorcycle() {
+    async function loadAllDataFromSupabase() {
+      try {
+        const resInv = await client.from('inventory').select('*');
+        if (resInv.data) inventory = resInv.data;
+
+        const resSales = await client.from('sales').select('*').order('created_at', { ascending: false });
+        if (resSales.data) salesLog = resSales.data;
+
+        const resExp = await client.from('expenses').select('*').order('created_at', { ascending: false });
+        if (resExp.data) expensesLog = resExp.data;
+
+        const resCash = await client.from('cash_transactions').select('*').order('created_at', { ascending: false });
+        if (resCash.data) cashTransactions = resCash.data;
+
+        generateNextInvoiceId();
+        renderAll();
+      } catch (err) {
+        console.error("خطأ أثناء جلب البيانات السحابية:", err);
+      }
+    }
+
+    function generateNextInvoiceId() {
+      const nextNum = 1001 + salesLog.length;
+      document.getElementById('inv-id').value = `#INV-${nextNum}`;
+    }
+
+    async function addMotorcycle() {
       const name = document.getElementById('m-name').value.trim();
       const cost = parseFloat(document.getElementById('m-cost').value) || 0;
       const price = parseFloat(document.getElementById('m-price').value);
@@ -498,18 +502,21 @@
 
       if(!name || !price || !qty) return alert("يرجى ملء كافة البيانات الرئيسية للموتوسيكل");
 
-      inventory.push({ id: Date.now(), name, cost, price, qty, category: "موتوسيكل" });
+      const newItem = { name, cost, price, qty, category: "موتوسيكل" };
+      const { data, error } = await client.from('inventory').insert([newItem]).select();
+
+      if (error) return alert("خطأ في الحفظ: " + error.message);
+
       document.getElementById('m-name').value = '';
       document.getElementById('m-cost').value = '';
       document.getElementById('m-price').value = '';
       document.getElementById('m-qty').value = '';
       
-      saveData();
       alert("تم إضافة الموتوسيكل بنجاح!");
-      renderAll();
+      await loadAllDataFromSupabase();
     }
 
-    function addPart() {
+    async function addPart() {
       const name = document.getElementById('p-name').value.trim();
       const cost = parseFloat(document.getElementById('p-cost').value) || 0;
       const price = parseFloat(document.getElementById('p-price').value);
@@ -517,18 +524,21 @@
 
       if(!name || !price || !qty) return alert("يرجى ملء كافة حقول القطعة");
 
-      inventory.push({ id: Date.now(), name, cost, price, qty, category: "قطع غيار" });
+      const newItem = { name, cost, price, qty, category: "قطع غيار" };
+      const { data, error } = await client.from('inventory').insert([newItem]).select();
+
+      if (error) return alert("خطأ في الحفظ: " + error.message);
+
       document.getElementById('p-name').value = '';
       document.getElementById('p-cost').value = '';
       document.getElementById('p-price').value = '';
       document.getElementById('p-qty').value = '';
       
-      saveData();
       alert("تم إضافة الصنف بنجاح!");
-      renderAll();
+      await loadAllDataFromSupabase();
     }
 
-    function addExpense() {
+    async function addExpense() {
       const category = document.getElementById('exp-category').value;
       const amount = parseFloat(document.getElementById('exp-amount').value);
       const note = document.getElementById('exp-note').value.trim();
@@ -536,28 +546,26 @@
       if(!amount || amount <= 0) return alert("يرجى إدخال مبلغ صحيح للمصروف");
 
       const now = new Date();
-      expensesLog.push({
-        category,
-        amount,
-        note,
-        time: now.toLocaleString('ar-EG'),
-        date: now.toISOString()
-      });
+      const timeStr = now.toLocaleString('ar-EG');
 
-      cashTransactions.push({
-        desc: `مصروفات [${category}]: ${note}`,
+      const { error: expErr } = await client.from('expenses').insert([{
+        category, amount, note, time: timeStr
+      }]);
+
+      if (expErr) return alert("خطأ أثناء إضافة المصروف: " + expErr.message);
+
+      await client.from('cash_transactions').insert([{
+        desc_text: `مصروفات [${category}]: ${note}`,
         type: 'out',
         amount: amount,
-        time: now.toLocaleTimeString('ar-EG'),
-        date: now.toISOString()
-      });
+        time: now.toLocaleTimeString('ar-EG')
+      }]);
 
       document.getElementById('exp-amount').value = '';
       document.getElementById('exp-note').value = '';
 
-      saveData();
       alert("تم تسجيل المصروف بنجاح!");
-      renderAll();
+      await loadAllDataFromSupabase();
     }
 
     function onInvoiceItemSearch() {
@@ -660,7 +668,7 @@
       document.getElementById('inv-grand-total').innerText = grandTotal.toLocaleString();
     }
 
-    function submitInvoice(shouldPrint) {
+    async function submitInvoice(shouldPrint) {
       const invId = document.getElementById('inv-id').value;
       const clientName = document.getElementById('inv-client-name').value.trim();
       const clientPhone = document.getElementById('inv-client-phone').value.trim();
@@ -670,41 +678,36 @@
 
       let grandTotal = 0;
       let totalCogs = 0;
-      
-      currentInvoiceCart.forEach(cartItem => {
+
+      for (let cartItem of currentInvoiceCart) {
         const item = inventory.find(i => i.id == cartItem.itemId);
         if(item) {
-          item.qty -= cartItem.qty;
+          const newQty = item.qty - cartItem.qty;
+          await client.from('inventory').update({ qty: newQty }).eq('id', item.id);
         }
         grandTotal += cartItem.total;
         totalCogs += cartItem.totalCost;
-      });
+      }
 
       const now = new Date();
       const timeString = now.toLocaleString('ar-EG');
-      const isoDate = now.toISOString();
 
-      salesLog.push({
-        invId,
-        clientName,
-        clientPhone,
-        itemsCount: currentInvoiceCart.length,
-        grandTotal,
-        totalCogs,
-        time: timeString,
-        date: isoDate
-      });
+      await client.from('sales').insert([{
+        inv_id: invId,
+        client_name: clientName,
+        client_phone: clientPhone,
+        items_count: currentInvoiceCart.length,
+        grand_total: grandTotal,
+        total_cogs: totalCogs,
+        time: timeString
+      }]);
 
-      cashTransactions.push({
-        desc: `فاتورة رقم ${invId} للعميل: ${clientName}`,
+      await client.from('cash_transactions').insert([{
+        desc_text: `فاتورة رقم ${invId} للعميل: ${clientName}`,
         type: 'in',
         amount: grandTotal,
-        time: now.toLocaleTimeString('ar-EG'),
-        date: isoDate
-      });
-
-      invoiceCounter++;
-      saveData();
+        time: now.toLocaleTimeString('ar-EG')
+      }]);
 
       if(shouldPrint) {
         window.print();
@@ -712,34 +715,32 @@
         alert(`تم حفظ الفاتورة بنجاح! \nرقم الفاتورة: ${invId}`);
       }
 
-      generateNextInvoiceId();
       document.getElementById('inv-client-name').value = '';
       document.getElementById('inv-client-phone').value = '';
       currentInvoiceCart = [];
       renderInvoiceCart();
 
-      renderAll();
+      await loadAllDataFromSupabase();
     }
 
-    function addManualCash() {
+    async function addManualCash() {
       const desc = document.getElementById('cash-desc').value.trim();
       const type = document.getElementById('cash-type').value;
       const amount = parseFloat(document.getElementById('cash-amount').value);
 
       if(!desc || !amount) return alert("يرجى إدخال البيان والمبلغ");
 
-      cashTransactions.push({
-        desc, type, amount,
-        time: new Date().toLocaleTimeString('ar-EG'),
-        date: new Date().toISOString()
-      });
-
-      saveData();
+      await client.from('cash_transactions').insert([{
+        desc_text: desc,
+        type: type,
+        amount: amount,
+        time: new Date().toLocaleTimeString('ar-EG')
+      }]);
 
       document.getElementById('cash-desc').value = '';
       document.getElementById('cash-amount').value = '';
 
-      renderCashFlow();
+      await loadAllDataFromSupabase();
     }
 
     function renderAll() {
@@ -807,11 +808,11 @@
       tbody.innerHTML = '';
       salesLog.forEach(s => {
         tbody.innerHTML += `<tr>
-          <td><b>${s.invId}</b></td>
-          <td>${s.clientName}</td>
-          <td>${s.clientPhone || 'غير مدخل'}</td>
-          <td>${s.itemsCount} صنف</td>
-          <td><b>${s.grandTotal.toLocaleString()} ج.م</b></td>
+          <td><b>${s.inv_id}</b></td>
+          <td>${s.client_name}</td>
+          <td>${s.client_phone || 'غير مدخل'}</td>
+          <td>${s.items_count} صنف</td>
+          <td><b>${s.grand_total.toLocaleString()} ج.م</b></td>
           <td>${s.time}</td>
         </tr>`;
       });
@@ -826,7 +827,7 @@
       const selectedDate = document.getElementById('cash-date-picker').value;
 
       cashTransactions.forEach(t => {
-        const transDate = t.date ? t.date.slice(0, 10) : '';
+        const transDate = t.created_at ? t.created_at.slice(0, 10) : '';
 
         if (!selectedDate || transDate === selectedDate) {
           if(t.type === 'in') totalIn += t.amount;
@@ -835,7 +836,7 @@
           const typeLabel = t.type === 'in' ? '<span class="cash-in">وارد (+)</span>' : '<span class="cash-out">منصرف (-)</span>';
 
           tbody.innerHTML += `<tr>
-            <td>${t.desc}</td>
+            <td>${t.desc_text}</td>
             <td>${typeLabel}</td>
             <td>${t.amount.toLocaleString()} ج.م</td>
             <td>${transDate || '-'}</td>
@@ -856,15 +857,15 @@
       let monthSales = 0;
       let monthCogs = 0;
       salesLog.forEach(s => {
-        if (s.date && s.date.startsWith(selectedMonth)) {
-          monthSales += s.grandTotal;
-          monthCogs += (s.totalCogs || 0);
+        if (s.created_at && s.created_at.startsWith(selectedMonth)) {
+          monthSales += s.grand_total;
+          monthCogs += (s.total_cogs || 0);
         }
       });
 
       let monthExpenses = 0;
       expensesLog.forEach(e => {
-        if (e.date && e.date.startsWith(selectedMonth)) {
+        if (e.created_at && e.created_at.startsWith(selectedMonth)) {
           monthExpenses += e.amount;
         }
       });
