@@ -76,6 +76,27 @@
       cursor: pointer;
       width: auto;
     }
+
+    /* --- تنسيقات خافية للطباعة --- */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #print-area, #print-area * {
+        visibility: visible;
+      }
+      #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 20px;
+        background: white;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -91,13 +112,13 @@
 
   <!-- التطبيق الرئيسي -->
   <div id="app" class="hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;" class="no-print">
       <h2 style="margin:0;">نظام الحسابات والمعرض 🛵</h2>
       <button onclick="logout()" style="width:auto; background:#dc3545; padding: 8px 20px;">تسجيل خروج 🚪</button>
     </div>
 
     <!-- شبكة الأقسام -->
-    <div class="dashboard-grid">
+    <div class="dashboard-grid no-print">
       <div class="nav-card active" onclick="switchPage('showroom-tab', this)">
         <span class="icon">🏍️</span>
         <span class="title">مخزون المعرض</span>
@@ -172,7 +193,8 @@
 
     <!-- 3. فاتورة جديدة -->
     <div id="new-invoice-tab" class="page-content hidden">
-      <div class="card">
+      <div class="card" id="print-area">
+        <h2 style="margin:0 0 15px 0;">معرض ومحل قطع غيار الموتوسيكلات 🛵</h2>
         <h3>إصدار فاتورة بيع جديدة 🧾</h3>
         
         <!-- بيانات الفاتورة والعميل -->
@@ -191,18 +213,20 @@
           </div>
         </div>
 
-        <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+        <hr style="border:0; border-top:1px solid #eee; margin:15px 0;" class="no-print">
 
         <!-- بحث لاختيار الصنف وإضافته للفاتورة -->
-        <label style="display:block; text-align:right; font-weight:bold;">ابحث واختر الصنف لإضافته للفاتورة:</label>
-        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:10px; align-items:center;">
-          <div>
-            <input type="text" id="inv-search" list="items-datalist" placeholder="🔍 اكتب اسم الصنف للبحث..." oninput="onInvoiceItemSearch()">
-            <datalist id="items-datalist"></datalist>
+        <div class="no-print">
+          <label style="display:block; text-align:right; font-weight:bold;">🔍 ابحث باسم الصنف لإضافته للفاتورة:</label>
+          <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:10px; align-items:center;">
+            <div>
+              <input type="text" id="inv-search" list="items-datalist" placeholder="اكتب أول حروف من الصنف..." oninput="onInvoiceItemSearch()">
+              <datalist id="items-datalist"></datalist>
+            </div>
+            <input type="number" id="inv-unit-price" readonly placeholder="السعر" style="background:#f0f0f0;">
+            <input type="number" id="inv-qty" value="1" min="1" placeholder="الكمية">
+            <button onclick="addItemToInvoice()" style="background:#007bff; width:auto; margin:8px 0; padding:12px 20px;">+ إضافة للصنف</button>
           </div>
-          <input type="number" id="inv-unit-price" readonly placeholder="السعر" style="background:#f0f0f0;">
-          <input type="number" id="inv-qty" value="1" min="1" placeholder="الكمية">
-          <button onclick="addItemToInvoice()" style="background:#007bff; width:auto; margin:8px 0; padding:12px 20px;">+ إضافة للصنف</button>
         </div>
 
         <!-- جدول الأصناف المضافة بالفاتورة -->
@@ -214,7 +238,7 @@
               <th>سعر الوحدة</th>
               <th>الكمية</th>
               <th>الإجمالي</th>
-              <th>إزالة</th>
+              <th class="no-print">إزالة</th>
             </tr>
           </thead>
           <tbody id="invoice-items-table"></tbody>
@@ -225,7 +249,10 @@
           إجمالي الفاتورة الكلي: <span id="inv-grand-total">0</span> ج.م
         </div>
 
-        <button onclick="submitInvoice()" style="background:#28a745; font-size:18px; padding:15px; margin-top:10px;">تأكيد وإصدار الفاتورة ✔️</button>
+        <div style="display:flex; gap:10px;" class="no-print">
+          <button onclick="submitInvoice(true)" style="background:#28a745; font-size:18px; padding:15px; flex:1;">تأكيد وطباعة الفاتورة 🖨️</button>
+          <button onclick="submitInvoice(false)" style="background:#17a2b8; font-size:18px; padding:15px; flex:1;">حفظ فقط بدون طباعة ✔️</button>
+        </div>
       </div>
     </div>
 
@@ -355,7 +382,6 @@
       location.reload();
     }
 
-    // --- 1. إضافة للمخزون ---
     function addMotorcycle() {
       const name = document.getElementById('m-name').value.trim();
       const price = parseFloat(document.getElementById('m-price').value);
@@ -388,7 +414,6 @@
       renderAll();
     }
 
-    // --- 2. البحث عن الأصناف وإدارة الفاتورة ---
     function onInvoiceItemSearch() {
       const val = document.getElementById('inv-search').value.trim();
       const matchedItem = inventory.find(i => (`[${i.category}] ${i.name}`) === val || i.name === val);
@@ -422,7 +447,6 @@
         total: item.price * qty
       });
 
-      // إرجاع حقول الإدخال إلى الوضع الافتراضي
       document.getElementById('inv-search').value = '';
       document.getElementById('inv-unit-price').value = '';
       document.getElementById('inv-qty').value = '1';
@@ -448,14 +472,14 @@
           <td>${item.unitPrice.toLocaleString()} ج.م</td>
           <td>${item.qty}</td>
           <td>${item.total.toLocaleString()} ج.م</td>
-          <td><button class="delete-btn" onclick="removeItemFromInvoice(${index})">حذف ❌</button></td>
+          <td class="no-print"><button class="delete-btn" onclick="removeItemFromInvoice(${index})">حذف ❌</button></td>
         </tr>`;
       });
 
       document.getElementById('inv-grand-total').innerText = grandTotal.toLocaleString();
     }
 
-    function submitInvoice() {
+    function submitInvoice(shouldPrint) {
       const invId = document.getElementById('inv-id').value;
       const clientName = document.getElementById('inv-client-name').value.trim();
       const clientPhone = document.getElementById('inv-client-phone').value.trim();
@@ -491,7 +515,12 @@
         time: new Date().toLocaleTimeString('ar-EG')
       });
 
-      alert(`تمت الفاتورة بنجاح! \nرقم الفاتورة: ${invId} \nإجمالي المبلغ: ${grandTotal.toLocaleString()} ج.م`);
+      // إجراء الطباعة عند طلبها
+      if(shouldPrint) {
+        window.print();
+      } else {
+        alert(`تم حفظ الفاتورة بنجاح! \nرقم الفاتورة: ${invId}`);
+      }
 
       invoiceCounter++;
       generateNextInvoiceId();
@@ -503,7 +532,6 @@
       renderAll();
     }
 
-    // --- 3. تسجيل الخزينة اليدوي ---
     function addManualCash() {
       const desc = document.getElementById('cash-desc').value.trim();
       const type = document.getElementById('cash-type').value;
@@ -522,7 +550,6 @@
       renderCashFlow();
     }
 
-    // --- 4. عرض وتحديث الجداول ---
     function renderAll() {
       renderShowroom();
       renderParts();
