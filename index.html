@@ -355,15 +355,20 @@
       </table>
     </div>
 
-    <!-- 6. حركة الخزينة اليومية -->
+    <!-- 6. حركة الخزينة اليومية المحدثة -->
     <div id="cash-flow-tab" class="page-content hidden">
       <div class="card">
         <h3>حركة الخزينة اليومية 💵</h3>
+
+        <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <label style="font-weight: bold;">📅 اختر التاريخ لمراجعة اليوم:</label>
+          <input type="date" id="cash-date-picker" style="max-width: 220px; margin: 0;" onchange="renderCashFlow()">
+        </div>
         
         <div class="cash-summary">
           <div>إجمالي المقبوضات (وارد): <span id="total-in" class="cash-in">0</span> ج.م</div>
           <div>إجمالي المدفوعات (منصرف): <span id="total-out" class="cash-out">0</span> ج.م</div>
-          <div>الرصيد الصافي: <span id="net-balance">0</span> ج.م</div>
+          <div>الرصيد الصافي لليوم المحدد: <span id="net-balance">0</span> ج.م</div>
         </div>
 
         <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: center;">
@@ -384,6 +389,7 @@
             <th>البيان</th>
             <th>نوع الحركة</th>
             <th>المبلغ</th>
+            <th>التاريخ</th>
             <th>الوقت</th>
           </tr>
         </thead>
@@ -437,6 +443,7 @@
         client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       }
       document.getElementById('month-picker').value = new Date().toISOString().slice(0, 7);
+      document.getElementById('cash-date-picker').value = new Date().toISOString().slice(0, 10);
       generateNextInvoiceId();
       renderAll();
     };
@@ -537,7 +544,6 @@
         date: now.toISOString()
       });
 
-      // خصم المصروف تلقائياً من الخزينة
       cashTransactions.push({
         desc: `مصروفات [${category}]: ${note}`,
         type: 'out',
@@ -817,18 +823,25 @@
       let totalIn = 0;
       let totalOut = 0;
 
+      const selectedDate = document.getElementById('cash-date-picker').value;
+
       cashTransactions.forEach(t => {
-        if(t.type === 'in') totalIn += t.amount;
-        else totalOut += t.amount;
+        const transDate = t.date ? t.date.slice(0, 10) : '';
 
-        const typeLabel = t.type === 'in' ? '<span class="cash-in">وارد (+)</span>' : '<span class="cash-out">منصرف (-)</span>';
+        if (!selectedDate || transDate === selectedDate) {
+          if(t.type === 'in') totalIn += t.amount;
+          else totalOut += t.amount;
 
-        tbody.innerHTML += `<tr>
-          <td>${t.desc}</td>
-          <td>${typeLabel}</td>
-          <td>${t.amount.toLocaleString()} ج.م</td>
-          <td>${t.time}</td>
-        </tr>`;
+          const typeLabel = t.type === 'in' ? '<span class="cash-in">وارد (+)</span>' : '<span class="cash-out">منصرف (-)</span>';
+
+          tbody.innerHTML += `<tr>
+            <td>${t.desc}</td>
+            <td>${typeLabel}</td>
+            <td>${t.amount.toLocaleString()} ج.م</td>
+            <td>${transDate || '-'}</td>
+            <td>${t.time}</td>
+          </tr>`;
+        }
       });
 
       document.getElementById('total-in').innerText = totalIn.toLocaleString();
