@@ -92,6 +92,17 @@
       margin-top: 20px;
     }
 
+    .bike-details-box {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
     @media print {
       body * { visibility: hidden; }
       #print-area, #print-area * { visibility: visible; }
@@ -195,7 +206,7 @@
     <!-- 3. فاتورة جديدة -->
     <div id="new-invoice-tab" class="page-content hidden">
       <div class="card" id="print-area">
-        <!-- أفق وأعلى الفاتورة للطباعة -->
+        <!-- أعلى الفاتورة للطباعة -->
         <div class="invoice-header-footer invoice-header">
           معرض نادي صبري لتجاره الموتسيكلات ( سوهاج - المراغه )
         </div>
@@ -230,13 +241,25 @@
             <input type="number" id="inv-qty" value="1" min="1" placeholder="الكمية">
             <button onclick="addItemToInvoice()" style="background:#007bff; width:auto; margin:8px 0; padding:12px 20px;">+ إضافة للصنف</button>
           </div>
+
+          <!-- حقول الشاسية والموتور تظهر فقط للموتوسيكلات -->
+          <div id="bike-spec-fields" class="bike-details-box hidden">
+            <div>
+              <label style="font-weight:bold; font-size:13px; color:#d97706; display:block; text-align:right;">* رقم الشاسية (إجباري للموتوسيكلات):</label>
+              <input type="text" id="inv-chassis-no" placeholder="أدخل رقم الشاسية">
+            </div>
+            <div>
+              <label style="font-weight:bold; font-size:13px; color:#d97706; display:block; text-align:right;">* رقم الموتور (إجباري للموتوسيكلات):</label>
+              <input type="text" id="inv-engine-no" placeholder="أدخل رقم الموتور">
+            </div>
+          </div>
         </div>
 
         <h4 style="margin-top:20px; text-align:right;">الأصناف المضافة للفاتورة:</h4>
         <table>
           <thead>
             <tr>
-              <th>الصنف</th>
+              <th>الصنف والتفاصيل</th>
               <th>سعر الوحدة</th>
               <th>الكمية</th>
               <th>الإجمالي</th>
@@ -439,12 +462,22 @@
       const val = document.getElementById('inv-search').value.trim();
       const matchedItem = inventory.find(i => (`[${i.category}] ${i.name}`) === val || i.name === val);
 
+      const specBox = document.getElementById('bike-spec-fields');
+
       if (matchedItem) {
         selectedItemId = matchedItem.id;
         document.getElementById('inv-unit-price').value = matchedItem.price;
+
+        // إظهار حقول الشاسية والموتور فقط إذا كان الصنف موتوسيكل
+        if(matchedItem.category === "موتوسيكل") {
+          specBox.classList.remove('hidden');
+        } else {
+          specBox.classList.add('hidden');
+        }
       } else {
         selectedItemId = null;
         document.getElementById('inv-unit-price').value = '';
+        specBox.classList.add('hidden');
       }
     }
 
@@ -460,17 +493,37 @@
         return alert(`الكمية المتاحة بالمخزون (${item.qty}) غير كافية!`);
       }
 
+      let chassis = "";
+      let engine = "";
+
+      // إذا كان الموتوسيكل، تأكد من إدخال رقم الشاسية والموتور
+      if(item.category === "موتوسيكل") {
+        chassis = document.getElementById('inv-chassis-no').value.trim();
+        engine = document.getElementById('inv-engine-no').value.trim();
+
+        if(!chassis || !engine) {
+          return alert("يرجى إدخال رقم الشاسية ورقم الموتور (إجباري عند بيع الموتوسيلات والاسكوترات)");
+        }
+      }
+
       currentInvoiceCart.push({
         itemId: item.id,
         name: item.name,
+        category: item.category,
+        chassis: chassis,
+        engine: engine,
         unitPrice: item.price,
         qty: qty,
         total: item.price * qty
       });
 
+      // إعادة تعيين الحقول
       document.getElementById('inv-search').value = '';
       document.getElementById('inv-unit-price').value = '';
       document.getElementById('inv-qty').value = '1';
+      document.getElementById('inv-chassis-no').value = '';
+      document.getElementById('inv-engine-no').value = '';
+      document.getElementById('bike-spec-fields').classList.add('hidden');
       selectedItemId = null;
 
       renderInvoiceCart();
@@ -488,8 +541,14 @@
 
       currentInvoiceCart.forEach((item, index) => {
         grandTotal += item.total;
+
+        let detailsHtml = `<b>${item.name}</b>`;
+        if(item.category === "موتوسيكل") {
+          detailsHtml += `<br><small style="color:#555;">شاسية: <b>${item.chassis}</b> | موتور: <b>${item.engine}</b></small>`;
+        }
+
         tbody.innerHTML += `<tr>
-          <td>${item.name}</td>
+          <td style="text-align:right;">${detailsHtml}</td>
           <td>${item.unitPrice.toLocaleString()} ج.م</td>
           <td>${item.qty}</td>
           <td>${item.total.toLocaleString()} ج.م</td>
