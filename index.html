@@ -77,6 +77,21 @@
       width: auto;
     }
 
+    .invoice-header-footer {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      padding: 10px 0;
+    }
+    .invoice-header {
+      border-bottom: 2px solid #007bff;
+      margin-bottom: 15px;
+    }
+    .invoice-footer {
+      border-top: 2px solid #007bff;
+      margin-top: 20px;
+    }
+
     @media print {
       body * { visibility: hidden; }
       #print-area, #print-area * { visibility: visible; }
@@ -180,7 +195,11 @@
     <!-- 3. فاتورة جديدة -->
     <div id="new-invoice-tab" class="page-content hidden">
       <div class="card" id="print-area">
-        <h2 style="margin:0 0 15px 0;">معرض نادي صبري للموتسيكلات 🛵</h2>
+        <!-- أفق وأعلى الفاتورة للطباعة -->
+        <div class="invoice-header-footer invoice-header">
+          معرض نادي صبري لتجاره الموتسيكلات ( سوهاج - المراغه )
+        </div>
+
         <h3>إصدار فاتورة بيع جديدة 🧾</h3>
         
         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:15px; text-align:right;">
@@ -231,7 +250,12 @@
           إجمالي الفاتورة الكلي: <span id="inv-grand-total">0</span> ج.م
         </div>
 
-        <div style="display:flex; gap:10px;" class="no-print">
+        <!-- أسفل الفاتورة للطباعة -->
+        <div class="invoice-header-footer invoice-footer">
+          معرض نادي صبري لتجاره الموتسيكلات ( سوهاج - المراغه )
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:20px;" class="no-print">
           <button onclick="submitInvoice(true)" style="background:#28a745; font-size:18px; padding:15px; flex:1;">تأكيد وطباعة الفاتورة 🖨️</button>
           <button onclick="submitInvoice(false)" style="background:#17a2b8; font-size:18px; padding:15px; flex:1;">حفظ فقط بدون طباعة ✔️</button>
         </div>
